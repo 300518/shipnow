@@ -67,11 +67,11 @@ La API estará disponible en `http://localhost:3000`.
 
 ## Variables de entorno
 
-| Variable | Descripción |
-|---|---|
-| PORT | Puerto del servidor |
-| MONGODB_URI | Cadena de conexión a MongoDB |
-| NODE_ENV | Entorno de ejecución: development, production o test |
+| Variable    | Descripción                                          |
+| ----------- | ---------------------------------------------------- |
+| PORT        | Puerto del servidor                                  |
+| MONGODB_URI | Cadena de conexión a MongoDB                         |
+| NODE_ENV    | Entorno de ejecución: development, production o test |
 
 Las variables se validan al iniciar la aplicación. No se debe subir el
 archivo `.env` al repositorio.
@@ -80,23 +80,23 @@ archivo `.env` al repositorio.
 
 ### Salud del servicio
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/health` | Comprueba que la API responde |
+| Método | Ruta      | Descripción                   |
+| ------ | --------- | ----------------------------- |
+| GET    | `/health` | Comprueba que la API responde |
 
 ### Productos
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/products` | Lista productos con stock disponible |
-| GET | `/api/products/:id` | Consulta un producto por ID |
-| POST | `/api/products` | Crea un producto |
+| Método | Ruta                | Descripción                          |
+| ------ | ------------------- | ------------------------------------ |
+| GET    | `/api/products`     | Lista productos con stock disponible |
+| GET    | `/api/products/:id` | Consulta un producto por ID          |
+| POST   | `/api/products`     | Crea un producto                     |
 
 Ejemplo de creación:
 
 ```json
 {
-  "name": "Teclado mecánico",
+  "name": "Teclado mecánico Gamer",
   "description": "Teclado para escritorio",
   "price": 49990,
   "stock": 10
@@ -105,13 +105,13 @@ Ejemplo de creación:
 
 ### Usuarios
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/users` | Lista usuarios |
-| GET | `/api/users/:id` | Consulta un usuario por ID |
-| POST | `/api/users` | Crea un usuario |
-| PATCH | `/api/users/:id` | Actualiza un usuario |
-| DELETE | `/api/users/:id` | Elimina un usuario |
+| Método | Ruta             | Descripción                |
+| ------ | ---------------- | -------------------------- |
+| GET    | `/api/users`     | Lista usuarios             |
+| GET    | `/api/users/:id` | Consulta un usuario por ID |
+| POST   | `/api/users`     | Crea un usuario            |
+| PATCH  | `/api/users/:id` | Actualiza un usuario       |
+| DELETE | `/api/users/:id` | Elimina un usuario         |
 
 Ejemplo de creación:
 
@@ -124,6 +124,49 @@ Ejemplo de creación:
 
 Si no se especifica un rol, se asigna `USER` por defecto.
 Los roles permitidos son `ADMIN` y `USER`.
+
+## Mocks y datos de prueba
+
+La API permite generar datos ficticios con `@faker-js/faker` para facilitar
+las pruebas y el desarrollo.
+
+El parámetro `qty` debe ser un entero entre 1 y 50. Si se omite, se utiliza
+el valor predeterminado de 5.
+
+| Método | Ruta                        | Descripción                                                               |
+| ------ | --------------------------- | ------------------------------------------------------------------------- |
+| GET    | `/api/mocks/users?qty=5`    | Genera usuarios ficticios en memoria                                      |
+| GET    | `/api/mocks/couriers?qty=5` | Genera repartidores ficticios en memoria                                  |
+| GET    | `/api/mocks/dataset?qty=5`  | Genera clientes, repartidores, productos, pedidos y entregas relacionados |
+| POST   | `/api/mocks/seed?qty=2`     | Inserta datos de prueba en MongoDB                                        |
+
+Ejemplos de uso:
+
+```bash
+curl -i "http://localhost:3000/api/mocks/dataset?qty=5"
+```
+
+```bash
+curl -i -X POST "http://localhost:3000/api/mocks/seed?qty=2"
+```
+
+Los endpoints GET generan datos en memoria y no los persisten. El endpoint
+POST sí inserta registros en MongoDB y cada llamada crea nuevos datos.
+
+El endpoint de seeding está destinado al desarrollo y las pruebas. No debe
+exponerse públicamente en producción sin controles de acceso apropiados.
+
+## Pruebas automatizadas
+
+Ejecutar las pruebas con:
+
+```bash
+npm test
+```
+
+Las pruebas utilizan `node:test` y comprueban reglas de negocio de productos,
+generación de datos, relaciones y validación de parámetros. Las pruebas
+actuales no requieren insertar registros en MongoDB.
 
 ## Manejo de errores
 
@@ -145,20 +188,32 @@ src/
 ├── constants/
 │   └── index.js
 ├── controllers/
+│   ├── mock.controller.js
 │   ├── product.controller.js
 │   └── user.controller.js
+├── mocks/
+│   └── mock.factory.js
 ├── models/
+│   ├── delivery.model.js
+│   ├── order.model.js
 │   ├── product.model.js
 │   └── user.model.js
 ├── repositories/
+│   ├── mock.repository.js
 │   ├── product.repository.js
 │   └── user.repository.js
 ├── routes/
+│   ├── mock.routes.js
 │   ├── product.routes.js
 │   └── user.routes.js
 └── services/
+    ├── mock.service.js
     ├── product.service.js
     └── user.service.js
+
+test/
+├── mock.service.test.js
+└── product.service.test.js
 ```
 
 ## ¿Por qué separar Service y Repository?
@@ -176,4 +231,3 @@ proyecto.
 - El archivo `.env` está excluido del control de versiones.
 - `.env.example` permite conocer las variables necesarias sin exponer valores
   locales.
-
