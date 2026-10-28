@@ -1,6 +1,7 @@
 const express = require("express");
 const productRoutes = require("./routes/product.routes");
 const userRoutes = require("./routes/user.routes");
+const mockRoutes = require("./routes/mock.routes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.get("/health", (req, res) => {
 // Rutas de la API
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/mocks", mockRoutes);
 
 // Middleware centralizado de errores: siempre al final
 app.use((err, req, res, next) => {

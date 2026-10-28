@@ -1,6 +1,8 @@
 const USER_ROLES = Object.freeze({
   ADMIN: "ADMIN",
   USER: "USER",
+  CUSTOMER: "CUSTOMER",
+  COURIER: "COURIER",
 });
 
 const PRODUCT_STATUS = Object.freeze({
@@ -8,7 +10,35 @@ const PRODUCT_STATUS = Object.freeze({
   OUT_OF_STOCK: "OUT_OF_STOCK",
 });
 
+const ORDER_STATUS = Object.freeze({
+  PENDING: "PENDING",
+  CONFIRMED: "CONFIRMED",
+  PREPARING: "PREPARING",
+  SHIPPED: "SHIPPED",
+  DELIVERED: "DELIVERED",
+  CANCELLED: "CANCELLED",
+});
+
+const ORDER_PRIORITY = Object.freeze({
+  LOW: "LOW",
+  NORMAL: "NORMAL",
+  HIGH: "HIGH",
+  URGENT: "URGENT",
+});
+
+const DELIVERY_STATUS = Object.freeze({
+  PENDING: "PENDING",
+  ASSIGNED: "ASSIGNED",
+  PICKED_UP: "PICKED_UP",
+  IN_TRANSIT: "IN_TRANSIT",
+  DELIVERED: "DELIVERED",
+  FAILED: "FAILED",
+});
+
 module.exports = {
   USER_ROLES,
   PRODUCT_STATUS,
+  ORDER_STATUS,
+  ORDER_PRIORITY,
+  DELIVERY_STATUS,
 };
