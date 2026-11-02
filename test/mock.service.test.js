@@ -1,10 +1,10 @@
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
 
-const mockService = require('../src/services/mock.service');
-const { USER_ROLES } = require('../src/constants');
+const mockService = require("../src/services/mock.service");
+const { USER_ROLES } = require("../src/constants");
 
-test('generateUsers genera la cantidad solicitada', () => {
+test("generateUsers genera la cantidad solicitada", () => {
   const users = mockService.generateUsers(4);
 
   assert.equal(users.length, 4);
@@ -15,16 +15,14 @@ test('generateUsers genera la cantidad solicitada', () => {
   );
 });
 
-test('generateCouriers genera solo repartidores', () => {
+test("generateCouriers genera solo repartidores", () => {
   const couriers = mockService.generateCouriers(3);
 
   assert.equal(couriers.length, 3);
-  assert.ok(
-    couriers.every((courier) => courier.role === USER_ROLES.COURIER)
-  );
+  assert.ok(couriers.every((courier) => courier.role === USER_ROLES.COURIER));
 });
 
-test('generateDataset crea registros relacionados', () => {
+test("generateDataset crea registros relacionados", () => {
   const dataset = mockService.generateDataset(3);
 
   assert.equal(dataset.users.length, 3);
@@ -33,15 +31,9 @@ test('generateDataset crea registros relacionados', () => {
   assert.ok(dataset.products.length >= 1);
   assert.ok(dataset.couriers.length >= 1);
 
-  const customerIds = new Set(
-    dataset.users.map((user) => user._id)
-  );
-  const productIds = new Set(
-    dataset.products.map((product) => product._id)
-  );
-  const orderIds = new Set(
-    dataset.orders.map((order) => order._id)
-  );
+  const customerIds = new Set(dataset.users.map((user) => user._id));
+  const productIds = new Set(dataset.products.map((product) => product._id));
+  const orderIds = new Set(dataset.orders.map((order) => order._id));
 
   for (const order of dataset.orders) {
     assert.ok(customerIds.has(order.customer));
@@ -58,8 +50,8 @@ test('generateDataset crea registros relacionados', () => {
   }
 });
 
-test('generateDataset rechaza cantidades inválidas', () => {
-  for (const qty of [0, -1, 1.5, 51, 'abc']) {
+test("generateDataset rechaza cantidades inválidas", () => {
+  for (const qty of [0, -1, 1.5, 51, "abc"]) {
     assert.throws(
       () => mockService.generateDataset(qty),
       (error) => {
@@ -67,5 +59,29 @@ test('generateDataset rechaza cantidades inválidas', () => {
         return true;
       }
     );
+  }
+});
+
+test("seed transforma errores del repositorio en MOCK_SEED_ERROR", async () => {
+  const mockRepository = require("../src/repositories/mock.repository");
+  const { ErrorAlCargarMocks } = require("../src/errors");
+
+  const seedOriginal = mockRepository.seed;
+
+  try {
+    mockRepository.seed = async () => {
+      throw new Error("Error simulado de MongoDB");
+    };
+
+    await assert.rejects(mockService.seed(2), (error) => {
+      assert.ok(error instanceof ErrorAlCargarMocks);
+      assert.equal(error.codigo, "MOCK_SEED_ERROR");
+      assert.equal(error.estado, 500);
+      assert.equal(error.message, "No fue posible cargar los datos de prueba.");
+
+      return true;
+    });
+  } finally {
+    mockRepository.seed = seedOriginal;
   }
 });

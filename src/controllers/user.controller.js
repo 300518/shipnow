@@ -6,7 +6,7 @@ class UserController {
       const users = await userService.getAll();
       return res.status(200).json({ data: users });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -15,7 +15,7 @@ class UserController {
       const user = await userService.getById(req.params.id);
       return res.status(200).json({ data: user });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -24,7 +24,7 @@ class UserController {
       const user = await userService.create(req.body);
       return res.status(201).json({ data: user });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -33,7 +33,7 @@ class UserController {
       const user = await userService.update(req.params.id, req.body);
       return res.status(200).json({ data: user });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -45,7 +45,7 @@ class UserController {
         data: user,
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 }

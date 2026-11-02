@@ -2,6 +2,7 @@ const express = require("express");
 const productRoutes = require("./routes/product.routes");
 const userRoutes = require("./routes/user.routes");
 const mockRoutes = require("./routes/mock.routes");
+const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
 
@@ -21,16 +22,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/mocks", mockRoutes);
 
 // Middleware centralizado de errores: siempre al final
-app.use((err, req, res, next) => {
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  const statusCode = err.statusCode || 500;
-
-  return res.status(statusCode).json({
-    error: statusCode === 500 ? "Error interno del servidor." : err.message,
-  });
-});
+app.use(errorMiddleware);
 
 module.exports = app;

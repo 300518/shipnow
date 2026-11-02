@@ -1,23 +1,25 @@
 const userRepository = require("../repositories/user.repository");
 const { USER_ROLES } = require("../constants");
-
-function createError(message, statusCode) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
+const {
+  DatosInvalidosError,
+  UsuarioNoEncontradoError,
+  RecursoDuplicadoError,
+} = require("../errors");
 
 function validateId(id) {
   const isValid = typeof id === "string" && /^[a-fA-F0-9]{24}$/.test(id);
 
   if (!isValid) {
-    throw createError("El ID del usuario no es válido.", 400);
+    throw new DatosInvalidosError({
+      parametro: "id",
+      valor: id,
+    });
   }
 }
 
 function normalizeUserData(data, isUpdate = false) {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
-    throw createError("Los datos del usuario no son válidos.", 400);
+    throw new DatosInvalidosError();
   }
 
   const userData = {};
@@ -26,7 +28,10 @@ function normalizeUserData(data, isUpdate = false) {
     const name = typeof data.name === "string" ? data.name.trim() : "";
 
     if (!name) {
-      throw createError("El nombre del usuario es obligatorio.", 400);
+      throw new DatosInvalidosError({
+        parametro: "name",
+        mensaje: "El nombre del usuario es obligatorio.",
+      });
     }
 
     userData.name = name;
@@ -39,11 +44,17 @@ function normalizeUserData(data, isUpdate = false) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!email) {
-      throw createError("El correo electrónico es obligatorio.", 400);
+      throw new DatosInvalidosError({
+        parametro: "email",
+        mensaje: "El correo electrónico es obligatorio.",
+      });
     }
 
     if (!emailRegex.test(email)) {
-      throw createError("El correo electrónico no es válido.", 400);
+      throw new DatosInvalidosError({
+        parametro: "email",
+        mensaje: "El correo electrónico no es válido.",
+      });
     }
 
     userData.email = email;
@@ -51,7 +62,10 @@ function normalizeUserData(data, isUpdate = false) {
 
   if (Object.hasOwn(data, "role")) {
     if (!Object.values(USER_ROLES).includes(data.role)) {
-      throw createError("El rol del usuario no es válido.", 400);
+      throw new DatosInvalidosError({
+        parametro: "role",
+        mensaje: "El rol del usuario no es válido.",
+      });
     }
 
     userData.role = data.role;
@@ -73,7 +87,7 @@ class UserService {
     const user = await userRepository.getById(id);
 
     if (!user) {
-      throw createError("Usuario no encontrado.", 404);
+      throw new UsuarioNoEncontradoError();
     }
 
     return user;
@@ -85,20 +99,20 @@ class UserService {
     const existingUser = await userRepository.getByEmail(userData.email);
 
     if (existingUser) {
-      throw createError(
-        "Ya existe un usuario con ese correo electrónico.",
-        409
-      );
+      throw new RecursoDuplicadoError({
+        parametro: "email",
+        valor: userData.email,
+      });
     }
 
     try {
       return await userRepository.create(userData);
     } catch (error) {
       if (error.code === 11000) {
-        throw createError(
-          "Ya existe un usuario con ese correo electrónico.",
-          409
-        );
+        throw new RecursoDuplicadoError({
+          parametro: "email",
+          valor: userData.email,
+        });
       }
 
       throw error;
@@ -111,16 +125,15 @@ class UserService {
     const existingUser = await userRepository.getById(id);
 
     if (!existingUser) {
-      throw createError("Usuario no encontrado.", 404);
+      throw new UsuarioNoEncontradoError();
     }
 
     const userData = normalizeUserData(data, true);
 
     if (Object.keys(userData).length === 0) {
-      throw createError(
-        "Debes proporcionar al menos un campo para actualizar.",
-        400
-      );
+      throw new DatosInvalidosError({
+        mensaje: "Debes proporcionar al menos un campo para actualizar.",
+      });
     }
 
     if (userData.email) {
@@ -130,10 +143,10 @@ class UserService {
         userWithEmail &&
         userWithEmail._id.toString() !== existingUser._id.toString()
       ) {
-        throw createError(
-          "Ya existe un usuario con ese correo electrónico.",
-          409
-        );
+        throw new RecursoDuplicadoError({
+          parametro: "email",
+          valor: userData.email,
+        });
       }
     }
 
@@ -141,16 +154,16 @@ class UserService {
       const updatedUser = await userRepository.update(id, userData);
 
       if (!updatedUser) {
-        throw createError("Usuario no encontrado.", 404);
+        throw new UsuarioNoEncontradoError();
       }
 
       return updatedUser;
     } catch (error) {
       if (error.code === 11000) {
-        throw createError(
-          "Ya existe un usuario con ese correo electrónico.",
-          409
-        );
+        throw new RecursoDuplicadoError({
+          parametro: "email",
+          valor: userData.email,
+        });
       }
 
       throw error;
@@ -163,7 +176,7 @@ class UserService {
     const deletedUser = await userRepository.delete(id);
 
     if (!deletedUser) {
-      throw createError("Usuario no encontrado.", 404);
+      throw new UsuarioNoEncontradoError();
     }
 
     return deletedUser;

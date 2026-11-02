@@ -1,6 +1,7 @@
 const { createMockDataset, createMockUser } = require("../mocks/mock.factory");
 const mockRepository = require("../repositories/mock.repository");
 const { USER_ROLES } = require("../constants");
+const { CantidadMockInvalidaError, ErrorAlCargarMocks } = require("../errors");
 
 const DEFAULT_QTY = 5;
 const MAX_QTY = 50;
@@ -13,11 +14,12 @@ function validateQty(qty) {
     normalizedQty < 1 ||
     normalizedQty > MAX_QTY
   ) {
-    const error = new Error(
-      `El parámetro qty debe ser un entero entre 1 y ${MAX_QTY}.`
-    );
-    error.statusCode = 400;
-    throw error;
+    throw new CantidadMockInvalidaError({
+      parametro: "qty",
+      valor: qty,
+      minimo: 1,
+      maximo: MAX_QTY,
+    });
   }
 
   return normalizedQty;
@@ -47,7 +49,13 @@ class MockService {
 
   async seed(qty) {
     const dataset = this.generateDataset(qty);
-    return mockRepository.seed(dataset);
+
+    try {
+      return await mockRepository.seed(dataset);
+    } catch (error) {
+      console.error("Error al cargar los datos de prueba:", error.message);
+      throw new ErrorAlCargarMocks();
+    }
   }
 }
 
