@@ -1,6 +1,6 @@
-
-const productRepository = require('../repositories/product.repository');
-const { PRODUCT_STATUS } = require('../constants');
+const productRepository = require("../repositories/product.repository");
+const { PRODUCT_STATUS } = require("../constants");
+const { ProductoNoEncontradoError, DatosInvalidosError } = require("../errors");
 
 class ProductService {
   async getAll() {
@@ -14,47 +14,50 @@ class ProductService {
     const product = await productRepository.getById(id);
 
     if (!product) {
-      const error = new Error('Producto no encontrado.');
-      error.statusCode = 404;
-      throw error;
+      throw new ProductoNoEncontradoError();
     }
 
     return product;
   }
 
   async create(data) {
-    const name = typeof data.name === 'string' ? data.name.trim() : '';
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      throw new DatosInvalidosError();
+    }
+
+    const name = typeof data.name === "string" ? data.name.trim() : "";
     const description =
-      typeof data.description === 'string' ? data.description.trim() : '';
+      typeof data.description === "string" ? data.description.trim() : "";
 
     const price = data.price;
     const stock = data.stock;
 
     if (!name) {
-      const error = new Error('El nombre del producto es obligatorio.');
-      error.statusCode = 400;
-      throw error;
+      throw new DatosInvalidosError(
+        { parametro: "name" },
+        "El nombre del producto es obligatorio."
+      );
     }
 
-    if (price === undefined || price === null || price === '') {
-      const error = new Error('El precio es obligatorio.');
-      error.statusCode = 400;
-      throw error;
+    if (price === undefined || price === null || price === "") {
+      throw new DatosInvalidosError(
+        { parametro: "price" },
+        "El precio es obligatorio."
+      );
     }
 
     if (!Number.isFinite(price) || price < 0) {
-      const error = new Error('El precio debe ser un número mayor o igual a cero.');
-      error.statusCode = 400;
-      throw error;
+      throw new DatosInvalidosError(
+        { parametro: "price" },
+        "El precio debe ser un número mayor o igual a cero."
+      );
     }
 
-    if (
-      stock !== undefined &&
-      (!Number.isInteger(stock) || stock < 0)
-    ) {
-      const error = new Error('El stock debe ser un entero mayor o igual a cero.');
-      error.statusCode = 400;
-      throw error;
+    if (stock !== undefined && (!Number.isInteger(stock) || stock < 0)) {
+      throw new DatosInvalidosError(
+        { parametro: "stock" },
+        "El stock debe ser un entero mayor o igual a cero."
+      );
     }
 
     const normalizedStock = stock ?? 0;

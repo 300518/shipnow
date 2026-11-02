@@ -170,12 +170,113 @@ actuales no requieren insertar registros en MongoDB.
 
 ## Manejo de errores
 
-La API utiliza un middleware centralizado para devolver errores en formato
-JSON y códigos HTTP apropiados.
+## Manejo de errores
 
-Las variables de entorno obligatorias se validan al iniciar el servidor.
-Los datos de usuarios y productos se validan en la capa de servicios y
-también mediante las restricciones de los modelos.
+La API implementa un sistema centralizado de manejo de errores mediante un middleware global ubicado en `src/middlewares/error.middleware.js`.
+
+Los errores se detectan en la capa correspondiente (principalmente en los servicios), se propagan mediante `next(error)` desde los controladores y son procesados por el middleware centralizado.
+
+### Formato estándar de respuesta
+
+Todas las respuestas de error utilizan la siguiente estructura JSON:
+
+```json
+{
+  "exito": false,
+  "error": {
+    "codigo": "USER_NOT_FOUND",
+    "mensaje": "El usuario no existe."
+  }
+}
+```
+
+Cuando corresponde, se incluyen detalles adicionales:
+
+```json
+{
+  "exito": false,
+  "error": {
+    "codigo": "INVALID_MOCK_QUANTITY",
+    "mensaje": "La cantidad debe ser un entero entre 1 y 50.",
+    "detalles": {
+      "parametro": "qty",
+      "valor": "-5",
+      "minimo": 1,
+      "maximo": 50
+    }
+  }
+}
+```
+
+### Catálogo de errores
+
+| Código HTTP | Código de error           | Descripción                                       |
+| ----------- | ------------------------- | ------------------------------------------------- |
+| 400         | `INVALID_DATA`            | Datos enviados no válidos.                        |
+| 400         | `INVALID_STATUS`          | Estado enviado no permitido.                      |
+| 400         | `INVALID_MOCK_QUANTITY`   | Cantidad de mocks fuera del rango permitido.      |
+| 400         | `INVALID_ID`              | Identificador de MongoDB con formato incorrecto.  |
+| 404         | `USER_NOT_FOUND`          | Usuario no encontrado.                            |
+| 404         | `PRODUCT_NOT_FOUND`       | Producto no encontrado.                           |
+| 404         | `ORDER_NOT_FOUND`         | Pedido no encontrado.                             |
+| 404         | `DELIVERY_NOT_FOUND`      | Entrega no encontrada.                            |
+| 409         | `RESOURCE_ALREADY_EXISTS` | Recurso duplicado, por ejemplo, correo existente. |
+| 500         | `MOCK_SEED_ERROR`         | Error al insertar datos de prueba.                |
+| 500         | `INTERNAL_SERVER_ERROR`   | Error interno inesperado.                         |
+
+Los errores inesperados no exponen detalles técnicos ni información interna de la base de datos.
+
+### Ejemplos de pruebas de errores
+
+**1. Cantidad de mocks inválida**
+
+```bash
+curl -i "http://localhost:3000/api/mocks/users?qty=-5"
+```
+
+Respuesta esperada: HTTP 400 (`INVALID_MOCK_QUANTITY`).
+
+**2. Cantidad decimal de mocks**
+
+```bash
+curl -i "http://localhost:3000/api/mocks/users?qty=2.5"
+```
+
+Respuesta esperada: HTTP 400 (`INVALID_MOCK_QUANTITY`).
+
+**3. Producto inexistente**
+
+```bash
+curl -i "http://localhost:3000/api/products/507f1f77bcf86cd799439011"
+```
+
+Respuesta esperada: HTTP 404 (`PRODUCT_NOT_FOUND`), si el ID tiene formato válido y el producto no existe.
+
+**4. Datos inválidos al crear un producto**
+
+```bash
+curl -i -X POST "http://localhost:3000/api/products" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"","price":-100,"stock":5}'
+```
+
+Respuesta esperada: HTTP 400 (`INVALID_DATA`).
+
+**5. Error al cargar datos de prueba**
+
+Si ocurre un fallo durante la persistencia de los mocks, el servicio transforma el error del repositorio en `MOCK_SEED_ERROR`.
+
+Respuesta esperada: HTTP 500, sin exponer detalles internos de MongoDB.
+
+### Pruebas automatizadas
+
+Ejecutar todas las pruebas:
+
+```bash
+npm test
+```
+
+La suite utiliza `node:test` y cubre errores personalizados, errores inesperados, validaciones de MongoDB, identificadores inválidos, registros duplicados y fallos en la carga de datos de prueba.
 
 ## Estructura del proyecto
 
@@ -191,6 +292,12 @@ src/
 │   ├── mock.controller.js
 │   ├── product.controller.js
 │   └── user.controller.js
+├── errors/
+│   ├── app.error.js
+│   ├── error.dictionary.js
+│   └── index.js
+├── middlewares/
+│   └── error.middleware.js
 ├── mocks/
 │   └── mock.factory.js
 ├── models/
@@ -212,8 +319,10 @@ src/
     └── user.service.js
 
 test/
+├── error.middleware.test.js
 ├── mock.service.test.js
-└── product.service.test.js
+├── product.service.test.js
+└── user.service.test.js
 ```
 
 ## ¿Por qué separar Service y Repository?
