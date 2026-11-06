@@ -5,6 +5,7 @@ const {
   UsuarioNoEncontradoError,
   RecursoDuplicadoError,
 } = require("../errors");
+const logger = require("../config/logger.config");
 
 function validateId(id) {
   const isValid = typeof id === "string" && /^[a-fA-F0-9]{24}$/.test(id);
@@ -106,7 +107,14 @@ class UserService {
     }
 
     try {
-      return await userRepository.create(userData);
+      const newUser = await userRepository.create(userData);
+
+      logger.info("Usuario creado correctamente", {
+        usuarioId: newUser._id.toString(),
+        rol: newUser.role,
+      });
+
+      return newUser;
     } catch (error) {
       if (error.code === 11000) {
         throw new RecursoDuplicadoError({
@@ -157,6 +165,11 @@ class UserService {
         throw new UsuarioNoEncontradoError();
       }
 
+      logger.info("Usuario actualizado correctamente", {
+        usuarioId: updatedUser._id.toString(),
+        camposActualizados: Object.keys(userData),
+      });
+
       return updatedUser;
     } catch (error) {
       if (error.code === 11000) {
@@ -178,6 +191,10 @@ class UserService {
     if (!deletedUser) {
       throw new UsuarioNoEncontradoError();
     }
+
+    logger.info("Usuario eliminado correctamente", {
+      usuarioId: deletedUser._id.toString(),
+    });
 
     return deletedUser;
   }

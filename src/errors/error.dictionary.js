@@ -5,6 +5,12 @@ const ERRORES = Object.freeze({
     estado: 500,
   },
 
+  RUTA_NO_ENCONTRADA: {
+    codigo: "ROUTE_NOT_FOUND",
+    mensaje: "La ruta solicitada no existe.",
+    estado: 404,
+  },
+
   DATOS_INVALIDOS: {
     codigo: "INVALID_DATA",
     mensaje: "Los datos enviados no son válidos.",

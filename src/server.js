@@ -1,20 +1,25 @@
+const config = require("./config/env.config");
 const mongoose = require("mongoose");
 const app = require("./app");
-const config = require("./config/env.config");
+const logger = require("./config/logger.config");
 
 async function startServer() {
   try {
     await mongoose.connect(config.MONGODB_URI);
 
-    console.log("Conexión a MongoDB establecida.");
-
+    logger.info("Conexión a MongoDB establecida");
     app.listen(config.PORT, () => {
-      console.log(
-        `ShipNow API ejecutándose en http://localhost:${config.PORT}`
-      );
+      logger.info("ShipNow API iniciada correctamente", {
+        puerto: config.PORT,
+        entorno: process.env.NODE_ENV,
+      });
     });
   } catch (error) {
-    console.error("No se pudo iniciar ShipNow:", error.message);
+    logger.fatal("No se pudo iniciar ShipNow", {
+      mensaje: error.message,
+      stack: error.stack,
+    });
+
     process.exit(1);
   }
 }

@@ -1,4 +1,5 @@
 const productRepository = require("../repositories/product.repository");
+const logger = require("../config/logger.config");
 const { PRODUCT_STATUS } = require("../constants");
 const { ProductoNoEncontradoError, DatosInvalidosError } = require("../errors");
 
@@ -73,7 +74,16 @@ class ProductService {
           : PRODUCT_STATUS.OUT_OF_STOCK,
     };
 
-    return productRepository.create(productData);
+    const newProduct = await productRepository.create(productData);
+
+    logger.info("Producto creado correctamente", {
+      productoId: newProduct._id.toString(),
+      nombre: newProduct.name,
+      precio: newProduct.price,
+      stock: newProduct.stock,
+    });
+
+    return newProduct;
   }
 }
 

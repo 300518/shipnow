@@ -10,6 +10,8 @@ usuarios y productos.
 - MongoDB
 - Mongoose
 - dotenv
+- Winston
+- Supertest
 
 ## Arquitectura
 
@@ -170,8 +172,6 @@ actuales no requieren insertar registros en MongoDB.
 
 ## Manejo de errores
 
-## Manejo de errores
-
 La API implementa un sistema centralizado de manejo de errores mediante un middleware global ubicado en `src/middlewares/error.middleware.js`.
 
 Los errores se detectan en la capa correspondiente (principalmente en los servicios), se propagan mediante `next(error)` desde los controladores y son procesados por el middleware centralizado.
@@ -278,6 +278,77 @@ npm test
 
 La suite utiliza `node:test` y cubre errores personalizados, errores inesperados, validaciones de MongoDB, identificadores inválidos, registros duplicados y fallos en la carga de datos de prueba.
 
+## Logging y monitoreo
+
+La API utiliza **Winston** como sistema centralizado de logging, configurado en `src/config/logger.config.js`.
+
+### Niveles de logging
+
+Se utilizan seis niveles personalizados, ordenados desde mayor a menor severidad:
+
+| Nivel | Descripción |
+|---|---|
+| `fatal` | Fallas críticas que pueden impedir el funcionamiento del servicio. |
+| `error` | Errores inesperados durante la ejecución. |
+| `warning` | Situaciones anómalas o validaciones rechazadas. |
+| `info` | Eventos relevantes del funcionamiento y operaciones de negocio. |
+| `http` | Eventos asociados a solicitudes HTTP. |
+| `debug` | Información detallada para diagnóstico durante el desarrollo. |
+
+### Configuración por entorno
+
+- **development:** registra todos los niveles, incluido `debug`.
+- **production:** registra desde `info` en adelante.
+
+### Persistencia y rotación de logs
+
+Los registros se almacenan en el directorio `logs/`:
+
+- `application-YYYY-MM-DD.log`: archivo general con los registros de la aplicación.
+- `error-YYYY-MM-DD.log`: archivo exclusivo para los niveles `error` y `fatal`.
+
+Los archivos utilizan formato JSON y rotación diaria. Cada archivo tiene un tamaño máximo de 20 MB.
+
+- Logs generales: retención de 14 días.
+- Logs de errores: retención de 30 días.
+
+El directorio `logs/` está excluido del control de versiones mediante `.gitignore`.
+
+### Eventos registrados
+
+Se registran eventos relevantes como:
+
+- Inicio del servidor y conexión a MongoDB.
+- Generación y persistencia de datos de prueba.
+- Creación, actualización y eliminación de usuarios.
+- Creación de productos.
+- Validaciones rechazadas y cantidades de mocks inválidas.
+- Rutas inexistentes y errores de la aplicación.
+
+### Endpoint de prueba
+
+En entorno de desarrollo está disponible un endpoint para comprobar los seis niveles de logging:
+
+```bash
+curl -i http://localhost:3000/api/logger/test
+```
+
+La respuesta HTTP 200 confirma que la prueba se ejecutó. Los seis niveles quedan registrados en el archivo general y los niveles `error` y `fatal` también en el archivo exclusivo de errores.
+
+Este endpoint no se registra en producción.
+
+### Pruebas automatizadas
+
+Las pruebas de integración HTTP utilizan Supertest junto con `node:test`.
+
+Ejecutar la suite completa:
+
+```bash
+npm test
+```
+
+Las pruebas verifican respuestas HTTP, validaciones, generación de datos y manejo de rutas inexistentes.
+
 ## Estructura del proyecto
 
 ```text
@@ -285,10 +356,12 @@ src/
 ├── app.js
 ├── server.js
 ├── config/
-│   └── env.config.js
+│   ├── env.config.js
+│   └── logger.config.js
 ├── constants/
 │   └── index.js
 ├── controllers/
+│   ├── logger.controller.js
 │   ├── mock.controller.js
 │   ├── product.controller.js
 │   └── user.controller.js
@@ -310,6 +383,7 @@ src/
 │   ├── product.repository.js
 │   └── user.repository.js
 ├── routes/
+│   ├── logger.routes.js
 │   ├── mock.routes.js
 │   ├── product.routes.js
 │   └── user.routes.js
@@ -317,9 +391,9 @@ src/
     ├── mock.service.js
     ├── product.service.js
     └── user.service.js
-
 test/
 ├── error.middleware.test.js
+├── integration.test.js
 ├── mock.service.test.js
 ├── product.service.test.js
 └── user.service.test.js
