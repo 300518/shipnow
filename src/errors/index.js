@@ -43,6 +43,12 @@ class ErrorAlCargarMocks extends AppError {
   }
 }
 
+class RutaNoEncontradaError extends AppError {
+  constructor() {
+    super(ERRORES.RUTA_NO_ENCONTRADA);
+  }
+}
+
 class RecursoDuplicadoError extends AppError {
   constructor(detalles = null) {
     super(ERRORES.RECURSO_DUPLICADO, detalles);
@@ -65,4 +71,5 @@ module.exports = {
   ErrorAlCargarMocks,
   RecursoDuplicadoError,
   DatosInvalidosError,
+  RutaNoEncontradaError,
 };

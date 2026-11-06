@@ -1,5 +1,6 @@
 const AppError = require("../errors/app.error");
 const ERRORES = require("../errors/error.dictionary");
+const logger = require("../config/logger.config");
 
 function errorMiddleware(err, req, res, next) {
   if (res.headersSent) {
@@ -8,6 +9,12 @@ function errorMiddleware(err, req, res, next) {
 
   // Errores personalizados de la aplicación
   if (err instanceof AppError) {
+    logger.warning(`${err.codigo}: ${err.message}`, {
+      codigo: err.codigo,
+      estado: err.estado,
+      ruta: req.originalUrl,
+      metodo: req.method,
+    });
     return res.status(err.estado).json({
       exito: false,
       error: {
@@ -20,6 +27,11 @@ function errorMiddleware(err, req, res, next) {
 
   // Error de validación de MongoDB
   if (err.name === "ValidationError") {
+    logger.warning("Error de validación de MongoDB", {
+      mensaje: err.message,
+      ruta: req.originalUrl,
+      metodo: req.method,
+    });
     return res.status(400).json({
       exito: false,
       error: {
@@ -31,6 +43,12 @@ function errorMiddleware(err, req, res, next) {
 
   // ID de MongoDB con formato incorrecto
   if (err.name === "CastError") {
+    logger.warning("Identificador de MongoDB inválido", {
+      campo: err.path,
+      valor: err.value,
+      ruta: req.originalUrl,
+      metodo: req.method,
+    });
     return res.status(400).json({
       exito: false,
       error: {
@@ -42,6 +60,11 @@ function errorMiddleware(err, req, res, next) {
 
   // Registro duplicado en MongoDB
   if (err.code === 11000) {
+    logger.warning("Intento de registrar un recurso duplicado", {
+      campo: Object.keys(err.keyPattern || {}),
+      ruta: req.originalUrl,
+      metodo: req.method,
+    });
     return res.status(409).json({
       exito: false,
       error: {
@@ -52,6 +75,12 @@ function errorMiddleware(err, req, res, next) {
   }
 
   // Error interno no controlado
+  logger.error("Error inesperado en la API", {
+    mensaje: err.message,
+    stack: err.stack,
+    ruta: req.originalUrl,
+    metodo: req.method,
+  });
   return res.status(ERRORES.ERROR_INTERNO.estado).json({
     exito: false,
     error: {
