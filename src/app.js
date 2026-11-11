@@ -9,6 +9,7 @@ const orderRoutes = require("./routes/order.routes");
 const deliveryRoutes = require("./routes/delivery.routes");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger.config");
+const loggerController = require("./controllers/logger.controller");
 
 const app = express();
 
@@ -35,6 +36,12 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mocks", mockRoutes);
 app.use("/api/logger", loggerRoutes);
+// Alias solicitado para pruebas de logging (solo desa).
+if (process.env.NODE_ENV !== "production") {
+  app.get("/loggerTest", (req, res, next) =>
+    loggerController.test(req, res, next)
+  );
+}
 app.use("/api/orders", orderRoutes);
 app.use("/api/deliveries", deliveryRoutes);
 

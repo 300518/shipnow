@@ -880,3 +880,31 @@
  *                     - http
  *                     - debug
  */
+
+/**
+ * @openapi
+ * /loggerTest:
+ *   get:
+ *     summary: Ejecutar prueba de logging (alias)
+ *     description: Alias solicitado para probar los seis niveles de logging. Disponible únicamente fuera del entorno de producción.
+ *     tags: [Logger]
+ *     responses:
+ *       200:
+ *         description: Prueba de logging ejecutada correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 exito:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: Prueba de logging ejecutada correctamente.
+ *                 niveles:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: [fatal, error, warning, info, http, debug]
+ */
