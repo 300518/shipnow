@@ -1,6 +1,22 @@
 const mongoose = require("mongoose");
 const { DELIVERY_STATUS } = require("../constants");
 
+const proofSchema = new mongoose.Schema(
+  {
+    originalName: { type: String, required: true },
+    filename: { type: String, required: true },
+    path: { type: String, required: true },
+    mimetype: { type: String, required: true },
+    size: { type: Number, required: true },
+    uploadedAt: { type: Date, default: Date.now },
+    documentType: {
+      type: String,
+      default: "DELIVERY_PROOF",
+    },
+  },
+  { _id: true }
+);
+
 const deliverySchema = new mongoose.Schema(
   {
     order: {
@@ -25,6 +41,10 @@ const deliverySchema = new mongoose.Schema(
     },
     deliveredAt: {
       type: Date,
+      default: null,
+    },
+    proof: {
+      type: proofSchema,
       default: null,
     },
   },

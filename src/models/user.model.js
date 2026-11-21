@@ -1,6 +1,23 @@
 const mongoose = require("mongoose");
 const { USER_ROLES } = require("../constants");
 
+const documentSchema = new mongoose.Schema(
+  {
+    originalName: { type: String, required: true },
+    filename: { type: String, required: true },
+    path: { type: String, required: true },
+    mimetype: { type: String, required: true },
+    size: { type: Number, required: true },
+    documentType: {
+      type: String,
+      enum: ["IDENTITY", "CONTRACT", "OTHER"],
+      required: true,
+    },
+    uploadedAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -19,6 +36,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(USER_ROLES),
       default: USER_ROLES.USER,
+    },
+    documents: {
+      type: [documentSchema],
+      default: [],
     },
   },
   {

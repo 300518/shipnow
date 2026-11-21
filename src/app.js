@@ -10,6 +10,7 @@ const deliveryRoutes = require("./routes/delivery.routes");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger.config");
 const loggerController = require("./controllers/logger.controller");
+const uploadErrorMiddleware = require("./middlewares/upload-error.middleware");
 
 const app = express();
 
@@ -49,6 +50,9 @@ app.use("/api/deliveries", deliveryRoutes);
 app.use((req, res, next) => {
   next(new RutaNoEncontradaError());
 });
+
+// Transformación de errores específicos de Multer
+app.use(uploadErrorMiddleware);
 
 // Middleware centralizado de errores: siempre al final
 app.use(errorMiddleware);

@@ -1,6 +1,6 @@
 const User = require("../models/user.model");
 
-const USER_FIELDS = "name email role createdAt updatedAt";
+const USER_FIELDS = "name email role documents createdAt updatedAt";
 
 class UserRepository {
   async getAll() {
@@ -25,17 +25,28 @@ class UserRepository {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      documents: user.documents,
     };
   }
 
   async update(id, userData) {
     return User.findByIdAndUpdate(id, userData, {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
       projection: USER_FIELDS,
     }).lean();
   }
-
+  async addDocument(id, documentData) {
+    return User.findByIdAndUpdate(
+      id,
+      { $push: { documents: documentData } },
+      {
+        returnDocument: "after",
+        runValidators: true,
+        projection: USER_FIELDS,
+      }
+    ).lean();
+  }
   async delete(id) {
     return User.findByIdAndDelete(id).lean();
   }

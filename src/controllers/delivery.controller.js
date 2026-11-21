@@ -19,6 +19,19 @@ class DeliveryController {
     }
   }
 
+  async uploadProof(req, res, next) {
+    try {
+      const delivery = await deliveryService.uploadProof(
+        req.params.id,
+        req.file
+      );
+
+      return res.status(200).json({ data: delivery });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async create(req, res, next) {
     try {
       const delivery = await deliveryService.create(req.body);

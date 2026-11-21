@@ -6,3 +6,5 @@ coverage/
 # Archivos de logging
 logs/
 *.log
+# Archivos subidos por usuarios
+/uploads/
