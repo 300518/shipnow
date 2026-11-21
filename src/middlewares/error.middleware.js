@@ -9,12 +9,14 @@ function errorMiddleware(err, req, res, next) {
 
   // Errores personalizados de la aplicación
   if (err instanceof AppError) {
-    logger.warning(`${err.codigo}: ${err.message}`, {
-      codigo: err.codigo,
-      estado: err.estado,
-      ruta: req.originalUrl,
-      metodo: req.method,
-    });
+    if (!err.uploadErrorLogged) {
+      logger.warning(`${err.codigo}: ${err.message}`, {
+        codigo: err.codigo,
+        estado: err.estado,
+        ruta: req.originalUrl,
+        metodo: req.method,
+      });
+    }
     return res.status(err.estado).json({
       exito: false,
       error: {

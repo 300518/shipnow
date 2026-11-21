@@ -24,6 +24,21 @@ class DeliveryRepository {
       .populate("courier", "name email role")
       .lean();
   }
+  async updateProof(id, proofData) {
+    const delivery = await Delivery.findByIdAndUpdate(
+      id,
+      { proof: proofData },
+      {
+        returnDocument: "after",
+        runValidators: true,
+      }
+    )
+      .populate("order")
+      .populate("courier", "name email role")
+      .lean();
+
+    return delivery;
+  }
 }
 
 module.exports = new DeliveryRepository();

@@ -1,3 +1,6 @@
+const fs = require("fs/promises");
+const path = require("path");
+const { validateFileContent } = require("../utils/file-validation");
 const deliveryRepository = require("../repositories/delivery.repository");
 const orderRepository = require("../repositories/order.repository");
 const userRepository = require("../repositories/user.repository");
@@ -35,6 +38,59 @@ class DeliveryService {
     }
 
     return delivery;
+  }
+
+  async uploadProof(id, file) {
+    if (!file) {
+      throw new DatosInvalidosError({
+        parametro: "file",
+        mensaje: "Debes adjuntar un comprobante de entrega.",
+      });
+    }
+
+    try {
+      validateId(id);
+      const delivery = await deliveryRepository.getById(id);
+
+      if (!delivery) {
+        throw new EntregaNoEncontradaError();
+      }
+
+      const isValidFile = await validateFileContent(file);
+
+      if (!isValidFile) {
+        throw new DatosInvalidosError({
+          parametro: "file",
+          mensaje:
+            "El contenido del archivo no corresponde al formato declarado.",
+        });
+      }
+
+      const proofData = {
+        originalName: file.originalname,
+        filename: file.filename,
+        path: path.relative(process.cwd(), file.path).replace(/\\/g, "/"),
+        mimetype: file.mimetype,
+        size: file.size,
+        documentType: "DELIVERY_PROOF",
+        uploadedAt: new Date(),
+      };
+
+      const updatedDelivery = await deliveryRepository.updateProof(
+        id,
+        proofData
+      );
+
+      logger.info("Comprobante asociado correctamente a la entrega", {
+        entregaId: id,
+        nombreArchivo: file.filename,
+      });
+
+      return updatedDelivery;
+    } catch (error) {
+      await fs.unlink(file.path).catch(() => {});
+      throw error;
+    }
   }
 
   async create(data) {
