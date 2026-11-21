@@ -1,4 +1,3 @@
-
 const { expect } = require("chai");
 const request = require("supertest");
 const app = require("../src/app");
@@ -54,6 +53,55 @@ describe("Pruebas funcionales - Pedidos", function () {
       );
       expect(order).to.have.property("total", 20000);
     });
+
+    it("debe devolver los metadatos de paginación por defecto", async function () {
+      await Order.create({
+        customer: customer._id,
+        items: [
+          { product: product._id, quantity: 1, unitPrice: product.price },
+        ],
+        total: product.price,
+        shippingAddress: "Av. Providencia 123",
+      });
+
+      const response = await request(app).get("/api/orders");
+
+      expect(response.status).to.equal(200);
+      expect(response.body.pagination).to.deep.equal({
+        page: 1,
+        limit: 10,
+        total: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    });
+
+    it("debe respetar los parámetros page y limit", async function () {
+      for (let i = 0; i < 3; i++) {
+        await Order.create({
+          customer: customer._id,
+          items: [
+            { product: product._id, quantity: 1, unitPrice: product.price },
+          ],
+          total: product.price,
+          shippingAddress: `Dirección ${i + 1}`,
+        });
+      }
+
+      const response = await request(app).get("/api/orders?page=2&limit=2");
+
+      expect(response.status).to.equal(200);
+      expect(response.body.data).to.be.an("array").with.lengthOf(1);
+      expect(response.body.pagination).to.deep.equal({
+        page: 2,
+        limit: 2,
+        total: 3,
+        totalPages: 2,
+        hasNextPage: false,
+        hasPreviousPage: true,
+      });
+    });
   });
 
   describe("GET /api/orders/:id", function () {
@@ -93,7 +141,9 @@ describe("Pruebas funcionales - Pedidos", function () {
       expect(response.status).to.equal(404);
       expect(response.body).to.have.property("exito", false);
       expect(response.body.error).to.have.property("codigo", "ORDER_NOT_FOUND");
-      expect(response.body.error).to.have.property("mensaje").that.is.a("string");
+      expect(response.body.error)
+        .to.have.property("mensaje")
+        .that.is.a("string");
     });
 
     it("debe rechazar un ID inválido", async function () {
@@ -128,10 +178,7 @@ describe("Pruebas funcionales - Pedidos", function () {
       expect(createdOrder).to.have.property("_id");
       expect(createdOrder).to.have.property("total", 30000);
       expect(createdOrder).to.have.property("status", "PENDING");
-      expect(createdOrder.customer).to.have.property(
-        "email",
-        customer.email
-      );
+      expect(createdOrder.customer).to.have.property("email", customer.email);
       expect(createdOrder.items[0].product).to.have.property(
         "name",
         product.name
@@ -159,13 +206,11 @@ describe("Pruebas funcionales - Pedidos", function () {
     });
 
     it("debe rechazar un pedido sin productos", async function () {
-      const response = await request(app)
-        .post("/api/orders")
-        .send({
-          customer: customer._id.toString(),
-          items: [],
-          shippingAddress: "Av. Providencia 123",
-        });
+      const response = await request(app).post("/api/orders").send({
+        customer: customer._id.toString(),
+        items: [],
+        shippingAddress: "Av. Providencia 123",
+      });
 
       expect(response.status).to.equal(400);
       expect(response.body).to.have.property("exito", false);

@@ -1,6 +1,7 @@
 const orderRepository = require("../repositories/order.repository");
 const productRepository = require("../repositories/product.repository");
 const userRepository = require("../repositories/user.repository");
+const { parsePagination, buildPagination } = require("../utils/pagination");
 
 const {
   PedidoNoEncontradoError,
@@ -23,8 +24,19 @@ function validateId(id, parametro = "id") {
 }
 
 class OrderService {
-  async getAll() {
-    return orderRepository.getAll();
+  async getAll(query = {}) {
+    const pagination = parsePagination(query);
+
+    const result = await orderRepository.getAll(pagination);
+
+    return {
+      data: result.orders,
+      pagination: buildPagination(
+        pagination.page,
+        pagination.limit,
+        result.total
+      ),
+    };
   }
 
   async getById(id) {

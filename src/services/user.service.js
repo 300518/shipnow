@@ -8,6 +8,7 @@ const {
   UsuarioNoEncontradoError,
   RecursoDuplicadoError,
 } = require("../errors");
+const { parsePagination, buildPagination } = require("../utils/pagination");
 const logger = require("../config/logger.config");
 
 function validateId(id) {
@@ -81,8 +82,19 @@ function normalizeUserData(data, isUpdate = false) {
 }
 
 class UserService {
-  async getAll() {
-    return userRepository.getAll();
+  async getAll(query = {}) {
+    const pagination = parsePagination(query);
+
+    const result = await userRepository.getAll(pagination);
+
+    return {
+      data: result.users,
+      pagination: buildPagination(
+        pagination.page,
+        pagination.limit,
+        result.total
+      ),
+    };
   }
 
   async getById(id) {

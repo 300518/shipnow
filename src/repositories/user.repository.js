@@ -3,8 +3,17 @@ const User = require("../models/user.model");
 const USER_FIELDS = "name email role documents createdAt updatedAt";
 
 class UserRepository {
-  async getAll() {
-    return User.find({}, USER_FIELDS).sort({ createdAt: -1 }).lean();
+  async getAll({ skip, limit }) {
+    const [users, total] = await Promise.all([
+      User.find({}, USER_FIELDS)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      User.countDocuments({}),
+    ]);
+
+    return { users, total };
   }
 
   async getById(id) {

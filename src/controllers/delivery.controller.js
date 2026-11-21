@@ -3,8 +3,9 @@ const deliveryService = require("../services/delivery.service");
 class DeliveryController {
   async getAll(req, res, next) {
     try {
-      const deliveries = await deliveryService.getAll();
-      return res.status(200).json({ data: deliveries });
+      const result = await deliveryService.getAll(req.query);
+
+      return res.status(200).json(result);
     } catch (error) {
       return next(error);
     }

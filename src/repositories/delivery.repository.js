@@ -1,12 +1,19 @@
 const Delivery = require("../models/delivery.model");
 
 class DeliveryRepository {
-  async getAll() {
-    return Delivery.find({})
-      .populate("order")
-      .populate("courier", "name email role")
-      .sort({ createdAt: -1 })
-      .lean();
+  async getAll({ skip, limit }) {
+    const [deliveries, total] = await Promise.all([
+      Delivery.find({})
+        .populate("order")
+        .populate("courier", "name email role")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Delivery.countDocuments({}),
+    ]);
+
+    return { deliveries, total };
   }
 
   async getById(id) {

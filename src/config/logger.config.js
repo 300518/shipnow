@@ -4,7 +4,6 @@ const path = require("path");
 
 const { combine, timestamp, printf, errors, json } = winston.format;
 
-// Niveles personalizados de logging.
 const niveles = {
   levels: {
     fatal: 0,
@@ -26,7 +25,6 @@ const niveles = {
 
 winston.addColors(niveles.colors);
 
-// Formato legible para consola.
 const formatoConsola = combine(
   errors({ stack: true }),
   timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
@@ -35,32 +33,30 @@ const formatoConsola = combine(
   })
 );
 
-// Directorio de persistencia.
 const directorioLogs = path.join(__dirname, "../../logs");
 
-// Configuración centralizada.
+const logLevel =
+  process.env.LOG_LEVEL ||
+  (process.env.NODE_ENV === "production" ? "info" : "debug");
+
 const logger = winston.createLogger({
   levels: niveles.levels,
-
-  level: process.env.NODE_ENV === "production" ? "info" : "debug",
+  level: logLevel,
 
   transports: [
-    // Salida por consola.
     new winston.transports.Console({
       format: formatoConsola,
     }),
 
-    // Archivo general con rotación diaria.
     new DailyRotateFile({
       filename: path.join(directorioLogs, "application-%DATE%.log"),
       datePattern: "YYYY-MM-DD",
       maxSize: "20m",
       maxFiles: "14d",
-      level: process.env.NODE_ENV === "production" ? "info" : "debug",
+      level: logLevel,
       format: combine(timestamp(), json()),
     }),
 
-    // Archivo exclusivo para errores y fallas críticas.
     new DailyRotateFile({
       filename: path.join(directorioLogs, "error-%DATE%.log"),
       datePattern: "YYYY-MM-DD",

@@ -10,6 +10,9 @@ const {
   DatosInvalidosError,
   RecursoDuplicadoError,
 } = require("../errors");
+
+const { parsePagination, buildPagination } = require("../utils/pagination");
+
 const logger = require("../config/logger.config");
 
 function validateId(id) {
@@ -24,8 +27,19 @@ function validateId(id) {
 }
 
 class DeliveryService {
-  async getAll() {
-    return deliveryRepository.getAll();
+  async getAll(query = {}) {
+    const pagination = parsePagination(query);
+
+    const result = await deliveryRepository.getAll(pagination);
+
+    return {
+      data: result.deliveries,
+      pagination: buildPagination(
+        pagination.page,
+        pagination.limit,
+        result.total
+      ),
+    };
   }
 
   async getById(id) {

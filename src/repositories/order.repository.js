@@ -1,12 +1,19 @@
 const Order = require("../models/order.model");
 
 class OrderRepository {
-  async getAll() {
-    return Order.find({})
-      .populate("customer", "name email role")
-      .populate("items.product", "name price")
-      .sort({ createdAt: -1 })
-      .lean();
+  async getAll({ skip, limit }) {
+    const [orders, total] = await Promise.all([
+      Order.find({})
+        .populate("customer", "name email role")
+        .populate("items.product", "name price")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Order.countDocuments({}),
+    ]);
+
+    return { orders, total };
   }
 
   async getById(id) {
