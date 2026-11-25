@@ -55,6 +55,10 @@
  *         updatedAt:
  *           type: string
  *           format: date-time
+ *         documents:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/UserDocument'
  *
  *     Product:
  *       type: object
@@ -141,6 +145,60 @@
  *           type: string
  *           format: date-time
  *           nullable: true
+ *         proof:
+ *           allOf:
+ *             - $ref: '#/components/schemas/DeliveryProof'
+ *           nullable: true
+ *
+ *     UserDocument:
+ *       type: object
+ *       properties:
+ *         originalName:
+ *           type: string
+ *           example: cedula.pdf
+ *         filename:
+ *           type: string
+ *           example: 1732200000000-uuid.pdf
+ *         path:
+ *           type: string
+ *           example: uploads/users/1732200000000-uuid.pdf
+ *         mimetype:
+ *           type: string
+ *           example: application/pdf
+ *         size:
+ *           type: integer
+ *           example: 102400
+ *         documentType:
+ *           type: string
+ *           enum: [IDENTITY, CONTRACT, OTHER]
+ *         uploadedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     DeliveryProof:
+ *       type: object
+ *       properties:
+ *         originalName:
+ *           type: string
+ *           example: comprobante.pdf
+ *         filename:
+ *           type: string
+ *           example: 1732200000000-uuid.pdf
+ *         path:
+ *           type: string
+ *           example: uploads/deliveries/1732200000000-uuid.pdf
+ *         mimetype:
+ *           type: string
+ *           example: application/pdf
+ *         size:
+ *           type: integer
+ *           example: 102400
+ *         documentType:
+ *           type: string
+ *           example: DELIVERY_PROOF
+ *         uploadedAt:
+ *           type: string
+ *           format: date-time
  */
 
 /**
@@ -316,6 +374,7 @@
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *
+ *
  *   delete:
  *     summary: Eliminar usuario
  *     tags: [Users]
@@ -334,6 +393,63 @@
  *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Identificador inválido.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Usuario no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+/**
+ * @openapi
+ * /api/users/{id}/documents:
+ *   post:
+ *     summary: Cargar documento de usuario
+ *     description: Permite adjuntar un documento PDF, JPG o PNG a un usuario. Tamaño máximo 5 MB.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Identificador MongoDB del usuario.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file, documentType]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *               documentType:
+ *                 type: string
+ *                 enum: [IDENTITY, CONTRACT, OTHER]
+ *     responses:
+ *       200:
+ *         description: Documento cargado correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Archivo ausente, tipo inválido o tamaño excedido.
  *         content:
  *           application/json:
  *             schema:
@@ -715,6 +831,61 @@
  *                   $ref: '#/components/schemas/Delivery'
  *       400:
  *         description: Identificador inválido.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Entrega no encontrada.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @openapi
+ * /api/deliveries/{id}/proof:
+ *   post:
+ *     summary: Cargar comprobante de entrega
+ *     description: Asocia un comprobante PDF, JPG o PNG a una entrega. Tamaño máximo 5 MB.
+ *     tags: [Deliveries]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Identificador MongoDB de la entrega.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Comprobante asociado correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/Delivery'
+ *       400:
+ *         description: Archivo ausente, tipo inválido o tamaño excedido.
  *         content:
  *           application/json:
  *             schema:

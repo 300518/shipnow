@@ -30,8 +30,23 @@ if (!allowedEnvironments.includes(process.env.NODE_ENV)) {
   );
 }
 
+const allowedLogLevels = ["fatal", "error", "warning", "info", "http", "debug"];
+
+const logLevel =
+  process.env.LOG_LEVEL ||
+  (process.env.NODE_ENV === "production" ? "info" : "debug");
+
+if (!allowedLogLevels.includes(logLevel)) {
+  throw new Error(
+    `Error de configuración: LOG_LEVEL debe ser uno de estos valores: ${allowedLogLevels.join(
+      ", "
+    )}.`
+  );
+}
+
 module.exports = Object.freeze({
   PORT: port,
   MONGODB_URI: process.env.MONGODB_URI,
   NODE_ENV: process.env.NODE_ENV,
+  LOG_LEVEL: logLevel,
 });

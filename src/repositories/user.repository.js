@@ -1,10 +1,19 @@
 const User = require("../models/user.model");
 
-const USER_FIELDS = "name email role createdAt updatedAt";
+const USER_FIELDS = "name email role documents createdAt updatedAt";
 
 class UserRepository {
-  async getAll() {
-    return User.find({}, USER_FIELDS).sort({ createdAt: -1 }).lean();
+  async getAll({ skip, limit }) {
+    const [users, total] = await Promise.all([
+      User.find({}, USER_FIELDS)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      User.countDocuments({}),
+    ]);
+
+    return { users, total };
   }
 
   async getById(id) {
@@ -25,17 +34,28 @@ class UserRepository {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      documents: user.documents,
     };
   }
 
   async update(id, userData) {
     return User.findByIdAndUpdate(id, userData, {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
       projection: USER_FIELDS,
     }).lean();
   }
-
+  async addDocument(id, documentData) {
+    return User.findByIdAndUpdate(
+      id,
+      { $push: { documents: documentData } },
+      {
+        returnDocument: "after",
+        runValidators: true,
+        projection: USER_FIELDS,
+      }
+    ).lean();
+  }
   async delete(id) {
     return User.findByIdAndDelete(id).lean();
   }

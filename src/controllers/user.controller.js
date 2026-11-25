@@ -3,8 +3,9 @@ const userService = require("../services/user.service");
 class UserController {
   async getAll(req, res, next) {
     try {
-      const users = await userService.getAll();
-      return res.status(200).json({ data: users });
+      const result = await userService.getAll(req.query);
+
+      return res.status(200).json(result);
     } catch (error) {
       return next(error);
     }
@@ -44,6 +45,20 @@ class UserController {
         message: "Usuario eliminado correctamente.",
         data: user,
       });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async uploadDocument(req, res, next) {
+    try {
+      const user = await userService.uploadDocument(
+        req.params.id,
+        req.file,
+        req.body.documentType
+      );
+
+      return res.status(200).json({ data: user });
     } catch (error) {
       return next(error);
     }

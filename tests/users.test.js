@@ -1,4 +1,3 @@
-
 const { expect } = require("chai");
 const request = require("supertest");
 const app = require("../src/app");
@@ -21,6 +20,53 @@ describe("Pruebas funcionales - Usuarios", function () {
       expect(response.body.data[0]).to.have.property("name");
       expect(response.body.data[0]).to.have.property("email");
       expect(response.body.data[0]).to.have.property("role");
+    });
+    it("debe devolver los metadatos de paginación por defecto", async function () {
+      await User.create({
+        name: "Usuario paginación",
+        email: "paginacion@test.com",
+      });
+
+      const response = await request(app).get("/api/users");
+
+      expect(response.status).to.equal(200);
+      expect(response.body.pagination).to.deep.include({
+        page: 1,
+        limit: 10,
+        total: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    });
+
+    it("debe respetar los parámetros page y limit", async function () {
+      for (let i = 1; i <= 3; i++) {
+        await User.create({
+          name: `Usuario ${i}`,
+          email: `usuario${i}@paginacion.test`,
+        });
+      }
+
+      const response = await request(app).get("/api/users?page=2&limit=2");
+
+      expect(response.status).to.equal(200);
+      expect(response.body.data).to.have.lengthOf(1);
+      expect(response.body.pagination).to.deep.include({
+        page: 2,
+        limit: 2,
+        total: 3,
+        totalPages: 2,
+        hasNextPage: false,
+        hasPreviousPage: true,
+      });
+    });
+
+    it("debe rechazar un límite superior a 50", async function () {
+      const response = await request(app).get("/api/users?limit=100");
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.have.property("codigo", "INVALID_DATA");
     });
   });
 
@@ -48,11 +94,10 @@ describe("Pruebas funcionales - Usuarios", function () {
 
       expect(response.status).to.equal(404);
       expect(response.body).to.have.property("exito", false);
-      expect(response.body.error).to.have.property(
-        "codigo",
-        "USER_NOT_FOUND"
-      );
-      expect(response.body.error).to.have.property("mensaje").that.is.a("string");
+      expect(response.body.error).to.have.property("codigo", "USER_NOT_FOUND");
+      expect(response.body.error)
+        .to.have.property("mensaje")
+        .that.is.a("string");
     });
 
     it("debe rechazar un ID inválido", async function () {
@@ -66,12 +111,10 @@ describe("Pruebas funcionales - Usuarios", function () {
 
   describe("POST /api/users", function () {
     it("debe crear un usuario correctamente", async function () {
-      const response = await request(app)
-        .post("/api/users")
-        .send({
-          name: "Usuario nuevo",
-          email: "usuario.nuevo@test.com",
-        });
+      const response = await request(app).post("/api/users").send({
+        name: "Usuario nuevo",
+        email: "usuario.nuevo@test.com",
+      });
 
       expect(response.status).to.equal(201);
       expect(response.body.data).to.include({
@@ -83,11 +126,9 @@ describe("Pruebas funcionales - Usuarios", function () {
     });
 
     it("debe rechazar la creación sin nombre", async function () {
-      const response = await request(app)
-        .post("/api/users")
-        .send({
-          email: "sin.nombre@test.com",
-        });
+      const response = await request(app).post("/api/users").send({
+        email: "sin.nombre@test.com",
+      });
 
       expect(response.status).to.equal(400);
       expect(response.body).to.have.property("exito", false);
@@ -100,12 +141,10 @@ describe("Pruebas funcionales - Usuarios", function () {
         email: "duplicado@test.com",
       });
 
-      const response = await request(app)
-        .post("/api/users")
-        .send({
-          name: "Usuario duplicado",
-          email: "duplicado@test.com",
-        });
+      const response = await request(app).post("/api/users").send({
+        name: "Usuario duplicado",
+        email: "duplicado@test.com",
+      });
 
       expect(response.status).to.equal(409);
       expect(response.body.error).to.have.property(
@@ -127,10 +166,7 @@ describe("Pruebas funcionales - Usuarios", function () {
         .send({ name: "Nombre actualizado" });
 
       expect(response.status).to.equal(200);
-      expect(response.body.data).to.have.property(
-        "name",
-        "Nombre actualizado"
-      );
+      expect(response.body.data).to.have.property("name", "Nombre actualizado");
       expect(response.body.data).to.have.property(
         "email",
         "actualizar@test.com"
@@ -180,10 +216,7 @@ describe("Pruebas funcionales - Usuarios", function () {
 
       expect(response.status).to.equal(404);
       expect(response.body).to.have.property("exito", false);
-      expect(response.body.error).to.have.property(
-        "codigo",
-        "USER_NOT_FOUND"
-      );
+      expect(response.body.error).to.have.property("codigo", "USER_NOT_FOUND");
     });
   });
 });
