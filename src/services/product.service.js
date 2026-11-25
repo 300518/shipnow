@@ -2,13 +2,21 @@ const productRepository = require("../repositories/product.repository");
 const logger = require("../config/logger.config");
 const { PRODUCT_STATUS } = require("../constants");
 const { ProductoNoEncontradoError, DatosInvalidosError } = require("../errors");
+const { parsePagination, buildPagination } = require("../utils/pagination");
 
 class ProductService {
-  async getAll() {
-    const products = await productRepository.getAll();
+  async getAll(query = {}) {
+    const { page, limit, skip } = parsePagination(query);
 
-    // Regla de negocio: mostrar solo productos con stock.
-    return products.filter((product) => product.stock > 0);
+    const { products, total } = await productRepository.getAll({
+      skip,
+      limit,
+    });
+
+    return {
+      data: products,
+      pagination: buildPagination(page, limit, total),
+    };
   }
 
   async getById(id) {

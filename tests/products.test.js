@@ -1,4 +1,3 @@
-
 const { expect } = require("chai");
 const request = require("supertest");
 const app = require("../src/app");
@@ -30,6 +29,62 @@ describe("Pruebas funcionales - Productos", function () {
       );
       expect(response.body.data[0]).to.have.property("stock", 10);
     });
+
+    it("debe devolver información de paginación por defecto", async function () {
+      await Product.create({
+        name: "Producto paginado",
+        price: 15000,
+        stock: 10,
+      });
+
+      const response = await request(app).get("/api/products");
+
+      expect(response.status).to.equal(200);
+      expect(response.body.pagination).to.include({
+        page: 1,
+        limit: 10,
+        total: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
+    });
+
+    it("debe respetar los parámetros page y limit", async function () {
+      for (let i = 1; i <= 12; i++) {
+        await Product.create({
+          name: `Producto ${i}`,
+          price: 1000 * i,
+          stock: 5,
+        });
+      }
+
+      const response = await request(app).get("/api/products?page=2&limit=5");
+
+      expect(response.status).to.equal(200);
+      expect(response.body.data).to.have.lengthOf(5);
+      expect(response.body.pagination.page).to.equal(2);
+      expect(response.body.pagination.limit).to.equal(5);
+      expect(response.body.pagination.total).to.equal(12);
+      expect(response.body.pagination.totalPages).to.equal(3);
+      expect(response.body.pagination.hasPreviousPage).to.equal(true);
+    });
+
+    it("debe rechazar un límite superior a 50", async function () {
+      const response = await request(app).get("/api/products?limit=51");
+
+      expect(response.status).to.equal(400);
+      expect(response.body.exito).to.equal(false);
+      expect(response.body.error.codigo).to.equal("INVALID_DATA");
+    });
+
+    it("debe rechazar una página inválida", async function () {
+      const response = await request(app).get("/api/products?page=0");
+
+      expect(response.status).to.equal(400);
+      expect(response.body.exito).to.equal(false);
+      expect(response.body.error.codigo).to.equal("INVALID_DATA");
+    });
   });
 
   describe("GET /api/products/:id", function () {
@@ -40,15 +95,10 @@ describe("Pruebas funcionales - Productos", function () {
         stock: 5,
       });
 
-      const response = await request(app).get(
-        `/api/products/${product._id}`
-      );
+      const response = await request(app).get(`/api/products/${product._id}`);
 
       expect(response.status).to.equal(200);
-      expect(response.body.data).to.have.property(
-        "name",
-        "Teclado mecánico"
-      );
+      expect(response.body.data).to.have.property("name", "Teclado mecánico");
       expect(response.body.data).to.have.property("price", 45000);
       expect(response.body.data).to.have.property("_id");
     });
@@ -64,7 +114,9 @@ describe("Pruebas funcionales - Productos", function () {
         "codigo",
         "PRODUCT_NOT_FOUND"
       );
-      expect(response.body.error).to.have.property("mensaje").that.is.a("string");
+      expect(response.body.error)
+        .to.have.property("mensaje")
+        .that.is.a("string");
     });
 
     it("debe rechazar un ID inválido", async function () {
@@ -78,14 +130,12 @@ describe("Pruebas funcionales - Productos", function () {
 
   describe("POST /api/products", function () {
     it("debe crear un producto correctamente", async function () {
-      const response = await request(app)
-        .post("/api/products")
-        .send({
-          name: "Mouse inalámbrico",
-          description: "Mouse de prueba",
-          price: 25000,
-          stock: 8,
-        });
+      const response = await request(app).post("/api/products").send({
+        name: "Mouse inalámbrico",
+        description: "Mouse de prueba",
+        price: 25000,
+        stock: 8,
+      });
 
       expect(response.status).to.equal(201);
       expect(response.body.data).to.include({
@@ -99,12 +149,10 @@ describe("Pruebas funcionales - Productos", function () {
     });
 
     it("debe rechazar un producto sin nombre", async function () {
-      const response = await request(app)
-        .post("/api/products")
-        .send({
-          price: 10000,
-          stock: 5,
-        });
+      const response = await request(app).post("/api/products").send({
+        price: 10000,
+        stock: 5,
+      });
 
       expect(response.status).to.equal(400);
       expect(response.body).to.have.property("exito", false);
@@ -112,13 +160,11 @@ describe("Pruebas funcionales - Productos", function () {
     });
 
     it("debe rechazar un precio negativo", async function () {
-      const response = await request(app)
-        .post("/api/products")
-        .send({
-          name: "Producto inválido",
-          price: -100,
-          stock: 5,
-        });
+      const response = await request(app).post("/api/products").send({
+        name: "Producto inválido",
+        price: -100,
+        stock: 5,
+      });
 
       expect(response.status).to.equal(400);
       expect(response.body).to.have.property("exito", false);
@@ -126,13 +172,11 @@ describe("Pruebas funcionales - Productos", function () {
     });
 
     it("debe rechazar un stock negativo", async function () {
-      const response = await request(app)
-        .post("/api/products")
-        .send({
-          name: "Producto sin stock válido",
-          price: 10000,
-          stock: -1,
-        });
+      const response = await request(app).post("/api/products").send({
+        name: "Producto sin stock válido",
+        price: 10000,
+        stock: -1,
+      });
 
       expect(response.status).to.equal(400);
       expect(response.body).to.have.property("exito", false);

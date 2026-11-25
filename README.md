@@ -1,12 +1,8 @@
-ShipNow API
+# ShipNow API
 
-API REST desarrollada con Node.js, Express y MongoDB para gestionar una
-plataforma de logística y distribución. Permite administrar usuarios,
-productos, pedidos, repartidores y entregas.
+API rest desarrollada con Node.js, Express y MongoDB para gestionar una plataforma de logística y distribución. Permite administrar usuarios, productos, pedidos, repartidores y entregas.
 
-Incluye generación de datos de prueba, manejo centralizado de errores,
-logging con Winston, documentación interactiva mediante Swagger /
-OpenAPI y pruebas automatizadas unitarias, de integración y funcionales.
+Incluye generación de datos de prueba, manejo centralizado de errores, logging con Winston, documentación interactiva mediante Swagger / OpenAPI y pruebas automatizadas unitarias, de integración y funcionales.
 
 ## Tecnologías
 
@@ -29,16 +25,11 @@ OpenAPI y pruebas automatizadas unitarias, de integración y funcionales.
 
 El proyecto utiliza una arquitectura de tres capas:
 
-- **Controller:** recibe las solicitudes HTTP y devuelve las
-  respuestas.
+- **Controller:** recibe las solicitudes HTTP y devuelve las respuestas.
 - **Service:** contiene la lógica de negocio y las validaciones.
-- **Repository:** centraliza las operaciones de acceso a MongoDB
-  mediante Mongoose.
+- **Repository:** centraliza las operaciones de acceso a MongoDB mediante Mongoose.
 
-Además, utiliza modelos para definir la estructura de los documentos,
-constantes para los roles y estados, middleware centralizado para el
-manejo de errores y configuraciones independientes para el entorno,
-logging y documentación OpenAPI.
+Además, utiliza modelos para definir la estructura de los documentos, constantes para los roles y estados, middleware centralizado para el manejo de errores y configuraciones independientes para el entorno, logging y documentación OpenAPI.
 
 ## Requisitos previos
 
@@ -47,114 +38,115 @@ logging y documentación OpenAPI.
 
 ## Instalación
 
-1.  Clonar el repositorio.
+1. Clonar el repositorio.
 
-2.  Instalar las dependencias:
+2. Instalar las dependencias:
 
-    ```bash
-    npm ci
-    ```
+   ```bash
+   npm ci
+   ```
 
-3.  Crear el archivo de configuración local:
+3. Crear el archivo de configuración local:
 
-    ```bash
-    cp .env.example .env
-    ```
+   ```bash
+   cp .env.example .env
+   ```
 
-4.  Configurar las variables de entorno en `.env`:
+4. Configurar las variables de entorno en `.env`:
 
-    ```env
-    PORT=3000
-    MONGODB_URI=mongodb://127.0.0.1:27017/shipnow
-    NODE_ENV=development
-    ```
+   ```env
+   PORT=3000
+   MONGODB_URI=mongodb://127.0.0.1:27017/shipnow
+   NODE_ENV=development
+   LOG_LEVEL=debug
+   ```
 
-5.  Iniciar el servidor en modo desarrollo:
+5. Iniciar el servidor en modo desarrollo:
 
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
-    Para iniciar en modo normal:
+   Para iniciar en modo normal:
 
-    ```bash
-    npm start
-    ```
+   ```bash
+   npm start
+   ```
 
 La API estará disponible en `http://localhost:3000`.
 
 ## Variables de entorno
 
----
+| Variable      | Descripción                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`        | Puerto del servidor                                                                                                           |
+| `MONGODB_URI` | Cadena de conexión a MongoDB                                                                                                  |
+| `NODE_ENV`    | Entorno de ejecución: development, production o test                                                                          |
+| `LOG_LEVEL`   | Nivel de logging: fatal, error, warning, info, http o debug. Opcional; por defecto debug en development e info en production. |
 
-Variable Descripción
+Las variables se validan al iniciar la aplicación. No se debe subir el archivo `.env` al repositorio.
 
----
+## Documentación API — Swagger / OpenAPI
 
-PORT Puerto del servidor
-
-MONGODB_URI Cadena de conexión a MongoDB
-
-NODE_ENV Entorno de ejecución: development, production o test
-
-LOG_LEVEL Nivel de logging: fatal, error, warning, info, http o
-debug. Opcional; por defecto debug en development e
-info en production.
-
----
-
-Las variables se validan al iniciar la aplicación. No se debe subir el
-archivo `.env` al repositorio.
-
-## Documentación API -- Swagger / OpenAPI
-
-ShipNow incorpora documentación interactiva mediante Swagger UI,
-generada a partir de especificaciones OpenAPI 3.0.3.
+ShipNow incorpora documentación interactiva mediante Swagger UI, generada a partir de especificaciones OpenAPI 3.0.3.
 
 ### Acceso a la documentación
 
-Recurso URL
+| Recurso                     | URL                                   |
+| --------------------------- | ------------------------------------- |
+| Swagger UI                  | `http://localhost:3000/api/docs`      |
+| Especificación OpenAPI JSON | `http://localhost:3000/api/docs.json` |
 
----
+Desde Swagger UI es posible consultar los endpoints, revisar parámetros, visualizar los esquemas de datos y ejecutar solicitudes HTTP directamente contra la API.
 
-Swagger UI `http://localhost:3000/api/docs`
-Especificación OpenAPI JSON `http://localhost:3000/api/docs.json`
+La documentación incluye los módulos Users, Products, Orders, Deliveries, Mocks y Logger.
 
-Desde Swagger UI es posible consultar los endpoints, revisar parámetros,
-visualizar los esquemas de datos y ejecutar solicitudes HTTP
-directamente contra la API.
-
-La documentación incluye los módulos Users, Products, Orders,
-Deliveries, Mocks y Logger.
-
-**Política de producción:** Swagger UI y la especificación JSON no se
-registran cuando `NODE_ENV=production`. Permanecen disponibles en
-`development` y `test`.
+**Política de producción:** Swagger UI y la especificación JSON no se registran cuando `NODE_ENV=production`. Permanecen disponibles en `development` y `test`.
 
 ## Endpoints
 
 ### Salud del servicio
 
----
-
-Método Ruta Descripción
-
----
-
-GET `/health` Comprueba que la API responde y entrega
-estado, entorno, uptime y timestamp
-
----
+| Método | Ruta      | Descripción                                                                 |
+| ------ | --------- | --------------------------------------------------------------------------- |
+| GET    | `/health` | Comprueba que la API responde y entrega estado, entorno, uptime y timestamp |
 
 ### Productos
 
-Método Ruta Descripción
+| Método | Ruta                | Descripción                                       |
+| ------ | ------------------- | ------------------------------------------------- |
+| GET    | `/api/products`     | Lista productos con stock disponible y paginación |
+| GET    | `/api/products/:id` | Consulta un producto por ID                       |
+| POST   | `/api/products`     | Crea un producto                                  |
 
----
+El listado de productos admite los siguientes parámetros:
 
-GET `/api/products` Lista productos con stock disponible
-GET `/api/products/:id` Consulta un producto por ID
-POST `/api/products` Crea un producto
+| Parámetro | Descripción                                     | Valor por defecto |
+| --------- | ----------------------------------------------- | ----------------- |
+| `page`    | Número de página, entero mayor o igual a 1      | `1`               |
+| `limit`   | Cantidad de resultados por página, entre 1 y 50 | `10`              |
+
+Ejemplo:
+
+```bash
+curl "http://localhost:3000/api/products?page=1&limit=10"
+```
+
+La respuesta incluye los productos y los metadatos de paginación:
+
+```json
+{
+  "data": [],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
 
 Ejemplo de creación:
 
@@ -169,15 +161,13 @@ Ejemplo de creación:
 
 ### Usuarios
 
-Método Ruta Descripción
-
----
-
-GET `/api/users` Lista usuarios
-GET `/api/users/:id` Consulta un usuario por ID
-POST `/api/users` Crea un usuario
-PATCH `/api/users/:id` Actualiza un usuario
-DELETE `/api/users/:id` Elimina un usuario
+| Método | Ruta             | Descripción                |
+| ------ | ---------------- | -------------------------- |
+| GET    | `/api/users`     | Lista usuarios             |
+| GET    | `/api/users/:id` | Consulta un usuario por ID |
+| POST   | `/api/users`     | Crea un usuario            |
+| PATCH  | `/api/users/:id` | Actualiza un usuario       |
+| DELETE | `/api/users/:id` | Elimina un usuario         |
 
 Ejemplo de creación:
 
@@ -189,18 +179,15 @@ Ejemplo de creación:
 }
 ```
 
-Los roles permitidos son `ADMIN`, `USER`, `CUSTOMER` y `COURIER`. Si no
-se especifica un rol, se asigna `USER` por defecto.
+Los roles permitidos son `ADMIN`, `USER`, `CUSTOMER` y `COURIER`. Si no se especifica un rol, se asigna `USER` por defecto.
 
 ### Pedidos (Orders)
 
-Método Ruta Descripción
-
----
-
-GET `/api/orders` Lista pedidos
-GET `/api/orders/:id` Consulta un pedido por ID
-POST `/api/orders` Crea un pedido
+| Método | Ruta              | Descripción               |
+| ------ | ----------------- | ------------------------- |
+| GET    | `/api/orders`     | Lista pedidos             |
+| GET    | `/api/orders/:id` | Consulta un pedido por ID |
+| POST   | `/api/orders`     | Crea un pedido            |
 
 Ejemplo de creación:
 
@@ -218,24 +205,19 @@ Ejemplo de creación:
 }
 ```
 
-El precio unitario y el total del pedido se calculan en el servidor
-utilizando los precios reales de los productos. No se confía en precios
-enviados por el cliente.
+El precio unitario y el total del pedido se calculan en el servidor utilizando los precios reales de los productos. No se confía en precios enviados por el cliente.
 
 Las prioridades disponibles son `LOW`, `NORMAL`, `HIGH` y `URGENT`.
 
-Los estados del pedido son `PENDING`, `CONFIRMED`, `PREPARING`,
-`SHIPPED`, `DELIVERED` y `CANCELLED`.
+Los estados del pedido son `PENDING`, `CONFIRMED`, `PREPARING`, `SHIPPED`, `DELIVERED` y `CANCELLED`.
 
 ### Entregas (Deliveries)
 
-Método Ruta Descripción
-
----
-
-GET `/api/deliveries` Lista entregas
-GET `/api/deliveries/:id` Consulta una entrega por ID
-POST `/api/deliveries` Registra una entrega
+| Método | Ruta                  | Descripción                 |
+| ------ | --------------------- | --------------------------- |
+| GET    | `/api/deliveries`     | Lista entregas              |
+| GET    | `/api/deliveries/:id` | Consulta una entrega por ID |
+| POST   | `/api/deliveries`     | Registra una entrega        |
 
 Ejemplo de creación:
 
@@ -247,45 +229,31 @@ Ejemplo de creación:
 }
 ```
 
-El campo `courier` es opcional. Cuando se informa, debe corresponder a
-un usuario existente con rol `COURIER`.
+El campo `courier` es opcional. Cuando se informa, debe corresponder a un usuario existente con rol `COURIER`.
 
 Cada pedido puede tener una única entrega asociada.
 
-Los estados de entrega disponibles son `PENDING`, `ASSIGNED`,
-`PICKED_UP`, `IN_TRANSIT`, `DELIVERED` y `FAILED`.
+Los estados de entrega disponibles son `PENDING`, `ASSIGNED`, `PICKED_UP`, `IN_TRANSIT`, `DELIVERED` y `FAILED`.
 
 ### Paginación de listados
 
-Los endpoints `GET /api/users`, `GET /api/orders` y
-`GET /api/deliveries` implementan paginación para evitar devolver
-colecciones ilimitadas.
+Los endpoints `GET /api/products`, `GET /api/users`, `GET /api/orders` y `GET /api/deliveries` implementan paginación para evitar devolver colecciones ilimitadas.
 
----
-
-Parámetro Descripción Valor por defecto Restricción
-
----
-
-`page` Número de página `1` Entero mayor o
-solicitada. igual a 1.
-
-`limit` Cantidad máxima `10` Entero entre 1 y
-de registros por 50.
-página.
-
----
+| Parámetro | Descripción                             | Valor por defecto | Restricción              |
+| --------- | --------------------------------------- | ----------------- | ------------------------ |
+| `page`    | Número de página solicitada             | `1`               | Entero mayor o igual a 1 |
+| `limit`   | Cantidad máxima de registros por página | `10`              | Entero entre 1 y 50      |
 
 Ejemplos:
 
 ```bash
+curl "http://localhost:3000/api/products?page=1&limit=10"
 curl "http://localhost:3000/api/users?page=2&limit=5"
 curl "http://localhost:3000/api/orders?page=1&limit=20"
 curl "http://localhost:3000/api/deliveries?page=1&limit=10"
 ```
 
-La respuesta contiene `data` con los registros de la página y
-`pagination` con los metadatos:
+La respuesta contiene `data` con los registros de la página y `pagination` con los metadatos:
 
 ```json
 {
@@ -301,35 +269,20 @@ La respuesta contiene `data` con los registros de la página y
 }
 ```
 
-Los valores `page` y `limit` inválidos, o un `limit` superior a 50,
-producen una respuesta HTTP 400.
+Los valores `page` y `limit` inválidos, o un `limit` superior a 50, producen una respuesta HTTP 400.
 
 ### Mocks y datos de prueba
 
-La API permite generar datos ficticios con `@faker-js/faker` para
-facilitar las pruebas y el desarrollo.
+La API permite generar datos ficticios con `@faker-js/faker` para facilitar las pruebas y el desarrollo.
 
-El parámetro `qty` debe ser un entero entre 1 y 50. Si se omite, se
-utiliza el valor predeterminado de 5.
+El parámetro `qty` debe ser un entero entre 1 y 50. Si se omite, se utiliza el valor predeterminado de 5.
 
----
-
-Método Ruta Descripción
-
----
-
-GET `/api/mocks/users?qty=5` Genera usuarios ficticios en
-memoria
-
-GET `/api/mocks/couriers?qty=5` Genera repartidores ficticios en
-memoria
-
-GET `/api/mocks/dataset?qty=5` Genera un conjunto de datos
-relacionados
-
-POST `/api/mocks/seed?qty=2` Inserta datos de prueba en MongoDB
-
----
+| Método | Ruta                        | Descripción                              |
+| ------ | --------------------------- | ---------------------------------------- |
+| GET    | `/api/mocks/users?qty=5`    | Genera usuarios ficticios en memoria     |
+| GET    | `/api/mocks/couriers?qty=5` | Genera repartidores ficticios en memoria |
+| GET    | `/api/mocks/dataset?qty=5`  | Genera un conjunto de datos relacionados |
+| POST   | `/api/mocks/seed?qty=2`     | Inserta datos de prueba en MongoDB       |
 
 Ejemplos de uso:
 
@@ -341,45 +294,26 @@ curl -i "http://localhost:3000/api/mocks/dataset?qty=5"
 curl -i -X POST "http://localhost:3000/api/mocks/seed?qty=2"
 ```
 
-Los endpoints GET generan datos en memoria y no los persisten. El
-endpoint POST sí inserta registros en MongoDB y cada llamada crea nuevos
-datos.
+Los endpoints GET generan datos en memoria y no los persisten. El endpoint POST sí inserta registros en MongoDB y cada llamada crea nuevos datos.
 
-Los endpoints de mocks y seeding solo se registran en entornos distintos
-de `production`.
+Los endpoints de mocks y seeding solo se registran en entornos distintos de `production`.
 
 ## Logging y monitoreo
 
-La API utiliza Winston como sistema centralizado de logging, configurado
-en `src/config/logger.config.js`.
+La API utiliza Winston como sistema centralizado de logging, configurado en `src/config/logger.config.js`.
 
 ### Niveles de logging
 
-Se utilizan seis niveles personalizados, ordenados desde mayor a menor
-severidad:
+Se utilizan seis niveles personalizados, ordenados desde mayor a menor severidad:
 
----
-
-Nivel Descripción
-
----
-
-`fatal` Fallas críticas que pueden impedir el funcionamiento del
-servicio.
-
-`error` Errores inesperados durante la ejecución.
-
-`warning` Situaciones anómalas o validaciones rechazadas.
-
-`info` Eventos relevantes del funcionamiento y operaciones de
-negocio.
-
-`http` Eventos asociados a solicitudes HTTP.
-
-`debug` Información detallada para diagnóstico durante el
-desarrollo.
-
----
+| Nivel     | Descripción                                                       |
+| --------- | ----------------------------------------------------------------- |
+| `fatal`   | Fallas críticas que pueden impedir el funcionamiento del servicio |
+| `error`   | Errores inesperados durante la ejecución                          |
+| `warning` | Situaciones anómalas o validaciones rechazadas                    |
+| `info`    | Eventos relevantes del funcionamiento y operaciones de negocio    |
+| `http`    | Eventos asociados a solicitudes HTTP                              |
+| `debug`   | Información detallada para diagnóstico durante el desarrollo      |
 
 ### Configuración por entorno
 
@@ -390,28 +324,21 @@ desarrollo.
 
 Los registros se almacenan en el directorio `logs/`:
 
-- `application-YYYY-MM-DD.log`: archivo general con los registros de
-  la aplicación.
-- `error-YYYY-MM-DD.log`: archivo exclusivo para los niveles `error` y
-  `fatal`.
+- `application-YYYY-MM-DD.log`: archivo general con los registros de la aplicación.
+- `error-YYYY-MM-DD.log`: archivo exclusivo para los niveles `error` y `fatal`.
 
-Los archivos utilizan formato JSON y rotación diaria, además de rotación
-por tamaño.
+Los archivos utilizan formato JSON y rotación diaria, además de rotación por tamaño.
 
-Archivo Tamaño máximo Retención
+| Archivo         | Tamaño máximo | Retención |
+| --------------- | ------------: | --------: |
+| Logs generales  |         20 MB |   14 días |
+| Logs de errores |         20 MB |   30 días |
 
----
-
-Logs generales 20 MB 14 días
-Logs de errores 20 MB 30 días
-
-El directorio `logs/` está excluido del control de versiones mediante
-`.gitignore`.
+El directorio `logs/` está excluido del control de versiones mediante `.gitignore`.
 
 ### Endpoints de prueba
 
-En entornos distintos de producción están disponibles los siguientes
-endpoints para comprobar los seis niveles de logging:
+En entornos distintos de producción están disponibles los siguientes endpoints para comprobar los seis niveles de logging:
 
 ```bash
 curl -i http://localhost:3000/api/logger/test
@@ -423,33 +350,21 @@ También se encuentra disponible el alias solicitado:
 curl -i http://localhost:3000/loggerTest
 ```
 
-Ambos endpoints ejecutan una prueba de los seis niveles de logging y
-responden HTTP 200 cuando la operación se completa correctamente.
+Ambos endpoints ejecutan una prueba de los seis niveles de logging y responden HTTP 200 cuando la operación se completa correctamente.
 
 Estos endpoints no se registran en producción.
 
 ## Carga de archivos
 
-La API permite cargar documentos de usuarios y comprobantes de entrega.
-Las cargas aplican validaciones de archivo, incluyendo límites de tamaño
-y tipos permitidos, y utilizan middleware específico para gestionar
-errores de Multer.
+La API permite cargar documentos de usuarios y comprobantes de entrega. Las cargas aplican validaciones de archivo, incluyendo límites de tamaño y tipos permitidos, y utilizan middleware específico para gestionar errores de Multer.
 
-El directorio `uploads/` está excluido del control de versiones y del
-contexto de construcción de Docker. En el contenedor se crea el
-directorio para permitir la ejecución de la aplicación. El
-almacenamiento del contenedor es efímero; para conservar archivos
-después de eliminar o recrear el contenedor se debe configurar un
-volumen o almacenamiento externo.
+El directorio `uploads/` está excluido del control de versiones y del contexto de construcción de Docker. En el contenedor se crea el directorio para permitir la ejecución de la aplicación. El almacenamiento del contenedor es efímero; para conservar archivos después de eliminar o recrear el contenedor se debe configurar un volumen o almacenamiento externo.
 
 ## Manejo de errores
 
-La API implementa un sistema centralizado de manejo de errores mediante
-un middleware global ubicado en `src/middlewares/error.middleware.js`.
+La API implementa un sistema centralizado de manejo de errores mediante un middleware global ubicado en `src/middlewares/error.middleware.js`.
 
-Los errores se detectan en la capa correspondiente, se propagan mediante
-`next(error)` desde los controladores y son procesados por el middleware
-centralizado.
+Los errores se detectan en la capa correspondiente, se propagan mediante `next(error)` desde los controladores y son procesados por el middleware centralizado.
 
 ### Formato estándar de respuesta
 
@@ -469,46 +384,25 @@ Cuando corresponde, se incluyen detalles adicionales de validación.
 
 ### Catálogo de errores
 
----
+| Código HTTP | Código de error           | Descripción                                     |
+| ----------: | ------------------------- | ----------------------------------------------- |
+|         400 | `INVALID_DATA`            | Datos enviados no válidos                       |
+|         400 | `INVALID_STATUS`          | Estado enviado no permitido                     |
+|         400 | `INVALID_MOCK_QUANTITY`   | Cantidad de mocks fuera del rango permitido     |
+|         400 | `INVALID_ID`              | Identificador de MongoDB con formato incorrecto |
+|         404 | `USER_NOT_FOUND`          | Usuario no encontrado                           |
+|         404 | `PRODUCT_NOT_FOUND`       | Producto no encontrado                          |
+|         404 | `ORDER_NOT_FOUND`         | Pedido no encontrado                            |
+|         404 | `DELIVERY_NOT_FOUND`      | Entrega no encontrada                           |
+|         409 | `RESOURCE_ALREADY_EXISTS` | Recurso duplicado                               |
+|         500 | `MOCK_SEED_ERROR`         | Error al insertar datos de prueba               |
+|         500 | `INTERNAL_SERVER_ERROR`   | Error interno inesperado                        |
 
-Código Código de error Descripción
-HTTP
-
----
-
-400 `INVALID_DATA` Datos enviados no válidos
-
-400 `INVALID_STATUS` Estado enviado no permitido
-
-400 `INVALID_MOCK_QUANTITY` Cantidad de mocks fuera del rango
-permitido
-
-400 `INVALID_ID` Identificador de MongoDB con
-formato incorrecto
-
-404 `USER_NOT_FOUND` Usuario no encontrado
-
-404 `PRODUCT_NOT_FOUND` Producto no encontrado
-
-404 `ORDER_NOT_FOUND` Pedido no encontrado
-
-404 `DELIVERY_NOT_FOUND` Entrega no encontrada
-
-409 `RESOURCE_ALREADY_EXISTS` Recurso duplicado
-
-500 `MOCK_SEED_ERROR` Error al insertar datos de prueba
-
-500 `INTERNAL_SERVER_ERROR` Error interno inesperado
-
----
-
-Los errores inesperados no exponen detalles técnicos ni información
-interna de la base de datos.
+Los errores inesperados no exponen detalles técnicos ni información interna de la base de datos.
 
 ## Docker
 
-El proyecto incluye `Dockerfile` y `.dockerignore` para construir una
-imagen de la API.
+El proyecto incluye `Dockerfile` y `.dockerignore` para construir una imagen de la API.
 
 ### Construir la imagen
 
@@ -518,15 +412,11 @@ Desde la raíz del proyecto:
 docker build -t shipnow-api:module-8 .
 ```
 
-La imagen utiliza Node.js 22 Alpine, instala únicamente dependencias de
-producción mediante `npm ci --omit=dev`, copia el código fuente y
-ejecuta la aplicación con el usuario no privilegiado `node`.
+La imagen utiliza Node.js 22 Alpine, instala únicamente dependencias de producción mediante `npm ci --omit=dev`, copia el código fuente y ejecuta la aplicación con el usuario no privilegiado `node`.
 
 ### Ejecutar el contenedor
 
-La API necesita una instancia MongoDB accesible desde el contenedor. En
-Docker Desktop para Mac, si MongoDB está ejecutándose en el host y
-publica el puerto 27017, se puede utilizar `host.docker.internal`:
+La API necesita una instancia MongoDB accesible desde el contenedor. En Docker Desktop para Mac, si MongoDB está ejecutándose en el host y publica el puerto 27017, se puede utilizar `host.docker.internal`:
 
 ```bash
 docker run -d \
@@ -539,8 +429,7 @@ docker run -d \
   shipnow-api:module-8
 ```
 
-En otros entornos, configura la dirección o el nombre de servicio de
-MongoDB correspondiente a la red Docker utilizada.
+En otros entornos, configura la dirección o el nombre de servicio de MongoDB correspondiente a la red Docker utilizada.
 
 ### Verificar el contenedor
 
@@ -550,8 +439,7 @@ docker logs shipnow-api-module-8
 curl -i http://localhost:3000/health
 ```
 
-La API queda disponible en `http://localhost:3000` y el health check en
-`http://localhost:3000/health`.
+La API queda disponible en `http://localhost:3000` y el health check en `http://localhost:3000/health`.
 
 ### Detener y eliminar el contenedor
 
@@ -562,38 +450,27 @@ docker rm shipnow-api-module-8
 
 ### Archivos excluidos de la imagen
 
-`.dockerignore` excluye dependencias locales, credenciales, archivos de
-entorno, logs, archivos subidos, pruebas y documentación que no se
-necesitan para ejecutar la API. Las dependencias se instalan dentro de
-la imagen a partir de `package-lock.json`.
+`.dockerignore` excluye dependencias locales, credenciales, archivos de entorno, logs, archivos subidos, pruebas y documentación que no se necesitan para ejecutar la API. Las dependencias se instalan dentro de la imagen a partir de `package-lock.json`.
 
-Los archivos `.env` no se copian a la imagen. Las variables de entorno
-se entregan al contenedor al momento de ejecutarlo.
+Los archivos `.env` no se copian a la imagen. Las variables de entorno se entregan al contenedor al momento de ejecutarlo.
 
-Los directorios `logs/` y `uploads/` dentro del contenedor no son
-almacenamiento persistente. Si se requiere conservar esos datos después
-de eliminar o recrear el contenedor, se deben configurar volúmenes o
-almacenamiento externo.
+Los directorios `logs/` y `uploads/` dentro del contenedor no son almacenamiento persistente. Si se requiere conservar esos datos después de eliminar o recrear el contenedor, se deben configurar volúmenes o almacenamiento externo.
 
 ## Pruebas automatizadas
 
-El proyecto cuenta con pruebas automatizadas unitarias, de integración y
-funcionales para verificar las reglas de negocio, los endpoints HTTP y
-el comportamiento general de la API.
+El proyecto cuenta con pruebas automatizadas unitarias, de integración y funcionales para verificar las reglas de negocio, los endpoints HTTP y el comportamiento general de la API.
 
 ### Herramientas utilizadas
 
 - **node:test:** ejecución de pruebas unitarias y de integración.
 - **Mocha:** framework para ejecutar las pruebas funcionales.
 - **Chai:** biblioteca de aserciones.
-- **Supertest:** pruebas de endpoints HTTP sin necesidad de iniciar el
-  servidor manualmente.
+- **Supertest:** pruebas de endpoints HTTP sin necesidad de iniciar el servidor manualmente.
 - **MongoDB:** persistencia de datos durante las pruebas funcionales.
 
 ### Configuración del entorno de pruebas
 
-Las pruebas funcionales utilizan una base de datos independiente para
-evitar modificar los datos del entorno de desarrollo.
+Las pruebas funcionales utilizan una base de datos independiente para evitar modificar los datos del entorno de desarrollo.
 
 Crear el archivo `.env.test` en la raíz del proyecto:
 
@@ -603,14 +480,11 @@ MONGODB_URI=mongodb://127.0.0.1:27017/shipnow_testing
 NODE_ENV=test
 ```
 
-Antes de ejecutar las pruebas funcionales, MongoDB debe estar disponible
-y la base de datos de pruebas debe ser accesible.
+Antes de ejecutar las pruebas funcionales, MongoDB debe estar disponible y la base de datos de pruebas debe ser accesible.
 
-El archivo `.env.test` está excluido del control de versiones y no debe
-subirse al repositorio.
+El archivo `.env.test` está excluido del control de versiones y no debe subirse al repositorio.
 
-La configuración de pruebas verifica que las operaciones de limpieza se
-realicen exclusivamente sobre la base de datos `shipnow_testing`.
+La configuración de pruebas verifica que las operaciones de limpieza se realicen exclusivamente sobre la base de datos `shipnow_testing`.
 
 ### Ejecución de las pruebas
 
@@ -645,45 +519,36 @@ npm run test:functional
 
 **Pruebas funcionales (`tests/`):**
 
-- **Usuarios:** listado, paginación, consulta, creación, actualización
-  y eliminación.
-- **Productos:** listado, consulta y creación.
-- **Pedidos:** listado, paginación, consulta y creación, incluyendo
-  validación de relaciones y cálculo de totales.
+- **Usuarios:** listado, paginación, consulta, creación, actualización y eliminación.
+- **Productos:** listado, paginación, consulta y creación.
+- **Pedidos:** listado, paginación, consulta y creación, incluyendo validación de relaciones y cálculo de totales.
 - **Entregas:** listado, paginación, consulta y creación.
-- **Mocks:** generación de usuarios, repartidores y datasets, además
-  de inserción en MongoDB.
+- **Mocks:** generación de usuarios, repartidores y datasets, además de inserción en MongoDB.
 - **Logger:** verificación de los niveles de logging.
-- **Swagger:** disponibilidad de la especificación OpenAPI y de la
-  interfaz Swagger UI.
+- **Swagger:** disponibilidad de la especificación OpenAPI y de la interfaz Swagger UI.
 
 ### Aislamiento de las pruebas
 
 Las pruebas funcionales utilizan hooks de Mocha para:
 
 - Conectarse a MongoDB antes de ejecutar las pruebas.
-- Limpiar los datos de la base de pruebas antes de cada prueba
-  funcional.
+- Limpiar los datos de la base de pruebas antes de cada prueba funcional.
 - Limpiar los datos al finalizar la suite.
 - Cerrar la conexión con MongoDB al terminar.
 
-Esto permite que las pruebas sean independientes y evita que los
-registros creados en una prueba afecten los resultados de otra.
+Esto permite que las pruebas sean independientes y evita que los registros creados en una prueba afecten los resultados de otra.
 
 ### Resultado de validación
 
 Última validación local:
 
-Suite Pruebas aprobadas Pruebas fallidas
+| Suite                      | Pruebas aprobadas | Pruebas fallidas |
+| -------------------------- | ----------------: | ---------------: |
+| Unitarias y de integración |                31 |                0 |
+| Funcionales                |                70 |                0 |
+| **Total**                  |           **101** |            **0** |
 
----
-
-Unitarias y de integración 28 0
-Funcionales 66 0
-**Total** **94** **0**
-
-Las suites se ejecutaron consecutivamente en dos ocasiones con
-resultados exitosos.
+Las suites se ejecutaron con resultados exitosos.
 
 ## Estructura del proyecto
 
@@ -771,27 +636,17 @@ shipnow/
 
 ## ¿Por qué separar Service y Repository?
 
-El Service concentra las reglas de negocio y las validaciones sin
-depender directamente de Mongoose. El Repository encapsula las consultas
-y operaciones de persistencia.
+El Service concentra las reglas de negocio y las validaciones sin depender directamente de Mongoose. El Repository encapsula las consultas y operaciones de persistencia.
 
-Esta separación facilita el mantenimiento, las pruebas y la evolución
-del proyecto.
+Esta separación facilita el mantenimiento, las pruebas y la evolución del proyecto.
 
 ## Seguridad
 
 - Las credenciales y la configuración local se mantienen en `.env`.
-- Los archivos `.env` y `.env.test` están excluidos del control de
-  versiones.
-- `.env.example` permite conocer las variables necesarias sin exponer
-  valores locales.
-- Las pruebas funcionales utilizan una base de datos independiente del
-  entorno de desarrollo.
-- Los endpoints de mocks, seeding y prueba de logging se restringen a
-  entornos distintos de producción.
+- Los archivos `.env` y `.env.test` están excluidos del control de versiones.
+- `.env.example` permite conocer las variables necesarias sin exponer valores locales.
+- Las pruebas funcionales utilizan una base de datos independiente del entorno de desarrollo.
+- Los endpoints de mocks, seeding y prueba de logging se restringen a entornos distintos de producción.
 - Swagger UI y la especificación OpenAPI no se exponen en producción.
-- Los listados de usuarios, pedidos y entregas utilizan paginación con
-  un máximo de 50 registros por página.
-- Docker excluye credenciales, dependencias locales, logs, archivos
-  subidos y archivos de pruebas de la imagen.
-  alvarocabezasgarrido@MacBook-Pro-de-Alvaro shipnow %
+- Los listados de productos, usuarios, pedidos y entregas utilizan paginación con un máximo de 50 registros por página.
+- Docker excluye credenciales, dependencias locales, logs, archivos subidos y archivos de pruebas de la imagen.
